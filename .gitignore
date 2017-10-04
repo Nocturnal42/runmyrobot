@@ -15,3 +15,8 @@ gpio.conf
 #ignore emacs temporary files
 \#*\#
 .\#*
+
+*.bak
+letsrobot.conf
+hardware/hardware_custom.example.py
+tts/tts_custom.py
