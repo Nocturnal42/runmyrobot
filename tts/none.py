@@ -5,3 +5,12 @@ def setup(robot_config):
 
 def say(*args):
     return
+
+def mute():
+    return
+    
+def unmute():
+    return
+    
+def volume(level):
+    return
