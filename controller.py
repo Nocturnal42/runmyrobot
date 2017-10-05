@@ -1,9 +1,7 @@
 # TODO move all defs to the top of the file, out of the way of the flow of execution.
 
 import platform
-import uuid
 import urllib2
-import json
 import traceback
 import re
 import argparse
@@ -11,8 +9,9 @@ import telly
 import robot_util
 import thread
 import subprocess
-
-from socketIO_client import SocketIO, LoggingNamespace
+import os.path
+import networking
+import time
 
 # fail gracefully if configparser is not installed
 try:
@@ -106,37 +105,8 @@ import tts.tts as tts
 tts.setup(robot_config)
 global drivingSpeed
 
+# TODO Add the custom chat handler loader
 # Load a custom chat handler if enabled and exists, otherwise define a dummy.
-
-handlingCommand = False
-
-def getControlHostPort():
-    url = 'https://%s/get_control_host_port/%s' % (infoServer, commandArgs.robot_id)
-    response = robot_util.getWithRetry(url)
-    return json.loads(response)
-
-def getChatHostPort():
-    url = 'https://%s/get_chat_host_port/%s' % (infoServer, commandArgs.robot_id)
-    response = robot_util.getWithRetry(url)
-    return json.loads(response)
-
-controlHostPort = getControlHostPort()
-chatHostPort = getChatHostPort()
-
-print "using socket io to connect to control", controlHostPort
-print "using socket io to connect to chat", chatHostPort
-
-print "connecting to control socket.io"
-controlSocketIO = SocketIO(controlHostPort['host'], controlHostPort['port'], LoggingNamespace)
-print "finished using socket io to connect to control host port", controlHostPort
-
-print "connecting to chat socket.io"
-chatSocket = SocketIO(chatHostPort['host'], chatHostPort['port'], LoggingNamespace)
-print 'finished using socket io to connect to chat ', chatHostPort
-
-print "connecting to app server socket.io"
-appServerSocketIO = SocketIO('letsrobot.tv', 8022, LoggingNamespace)
-print "finished connecting to app server"
 
 #def setServoPulse(channel, pulse):
 #  pulseLength = 1000000                   # 1,000,000 us per second
@@ -227,12 +197,12 @@ def handle_chat_message(args):
     urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
     if message[1] == ".":
        exit()
-    elif commandArgs.anon_tts != True and args['anonymous'] == True:
+    elif robot_config.getboolen('tts', 'anon_tts') != True and args['anonymous'] == True:
        exit()   
-    elif commandArgs.filter_url_tts == True and re.search(urlRegExp, message):
+    elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
        exit()
     else:
-          say(message)
+       tts.say(message)
 
 # TODO changeVolumeHighThenNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
@@ -245,60 +215,40 @@ def changeVolumeHighThenNormal():
 def handleLoudCommand():
 
     thread.start_new_thread(changeVolumeHighThenNormal, ())
+
+handlingCommand = False
     
 def handle_command(args):
-
-        global handlingCommand
-
-        if handlingCommand:
-            return
 
         handlingCommand = True
 
         if 'command' in args and 'robot_id' in args and args['robot_id'] == robotID:
+        
+            if debug_messages:
+                print('got command', args)
 
-            print('got command', args)
-
+# TODO Modify move to take args, so custom controllers have access to the full message,
+# not just the command portion.
             command = args['command']
+            module.move(command)
+
 
 # TODO WALL and LOUD don't belong here, should be in custom handler.
             if command == 'LOUD':
                 handleLoudCommand()
                 
-        if commandArgs.type == 'motor_hat':
-            if command == 'WALL':
-                handleLoudCommand()
-                os.system("aplay -D plughw:2,0 /home/pi/wall.wav")
-
-
-# TODO Modify move to take args, so custom controllers have access to the full message,
-# not just the command portion.
-            module.move(command)
-                                    
+            if commandArgs.type == 'motor_hat':
+                if command == 'WALL':
+                    handleLoudCommand()
+                    os.system("aplay -D plughw:2,0 /home/pi/wall.wav")
+                                                        
         handlingCommand = False
 
-def handleStartReverseSshProcess(args):
-    print "starting reverse ssh"
-    appServerSocketIO.emit("reverse_ssh_info", "starting")
-
-    returnCode = subprocess.call(["/usr/bin/ssh",
-                                  "-X",
-                                  "-i", commandArgs.reverse_ssh_key_file,
-                                  "-N",
-                                  "-R", "2222:localhost:22",
-                                  commandArgs.reverse_ssh_host])
-
-    appServerSocketIO.emit("reverse_ssh_info", "return code: " + str(returnCode))
-    print "reverse ssh process has exited with code", str(returnCode)
-
-    
-def handleEndReverseSshProcess(args):
-    print "handling end reverse ssh process"
-    resultCode = subprocess.call(["killall", "ssh"])
-    print "result code of killall ssh:", resultCode
-
 def on_handle_command(*args):
-   thread.start_new_thread(handle_command, args)
+   if handlingCommand:
+       return
+   else:
+       thread.start_new_thread(handle_command, args)
 
 def on_handle_exclusive_control(*args):
    thread.start_new_thread(handle_exclusive_control, args)
@@ -306,25 +256,19 @@ def on_handle_exclusive_control(*args):
 def on_handle_chat_message(*args):
    thread.start_new_thread(handle_chat_message, args)
 
-   
-#from communication import socketIO
-controlSocketIO.on('command_to_robot', on_handle_command)
-appServerSocketIO.on('exclusive_control', on_handle_exclusive_control)
-chatSocket.on('chat_message_with_name', on_handle_chat_message)
+# Connect to the networking sockets
+networking.setupSocketIO(robot_config)
+controlSocketIO = networking.setupControlSocket(on_handle_command)
+chatSocket = networking.setupChatSocket(on_handle_chat_message)
+appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
 
 
-def startReverseSshProcess(*args):
-   thread.start_new_thread(handleStartReverseSshProcess, args)
-
-def endReverseSshProcess(*args):
-   thread.start_new_thread(handleEndReverseSshProcess, args)
-
-appServerSocketIO.on('reverse_ssh_8872381747239', startReverseSshProcess)
-appServerSocketIO.on('end_reverse_ssh_8872381747239', endReverseSshProcess)
-
-#def myWait():
-#  socketIO.wait()
-#  thread.start_new_thread(myWait, ())
+# If reverse SSH is enabled and if the key file exists, import it and hook it in.
+if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
+    import reverse_ssh
+    setupReverseSsh(robot_config)
+    appServerSocketIO.on('reverse_ssh_8872381747239', reverse_ssh.startReverseSshProcess)
+    appServerSocketIO.on('end_reverse_ssh_8872381747239', reverse_ssh.endReverseSshProcess)
 
 
 def ipInfoUpdate():
@@ -374,32 +318,6 @@ elif platform.system() == 'Linux':
 
 lastInternetStatus = False
 
-def waitForAppServer():
-    while True:
-        appServerSocketIO.wait(seconds=1)
-
-def waitForControlServer():
-    while True:
-        controlSocketIO.wait(seconds=1)        
-
-def waitForChatServer():
-    while True:
-        chatSocket.wait(seconds=1)        
-        
-def startListenForAppServer():
-   thread.start_new_thread(waitForAppServer, ())
-
-def startListenForControlServer():
-   thread.start_new_thread(waitForControlServer, ())
-
-def startListenForChatServer():
-   thread.start_new_thread(waitForChatServer, ())
-
-
-startListenForControlServer()
-startListenForAppServer()
-startListenForChatServer()
-
 while True:
     time.sleep(1)
     
@@ -413,7 +331,7 @@ while True:
     if (waitCounter % 60) == 0:
         if robot_config.getboolean('misc', 'slow_for_low_battery'):
             if chargeValue < 30:
-                say("battery low, %d percent" % int(chargeValue))
+                tts.say("battery low, %d percent" % int(chargeValue))
 
                 
     if (waitCounter % 17) == 0:

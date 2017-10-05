@@ -1,16 +1,20 @@
 import os
 import tempfile
+import uuid
 
 type = 'none'
 tts_module = None
 tempDir = None
+debug_messages = None
 
 def setup(robot_config):
     global type
     global tts_module
     global tempDir
+    global debug_messages
     
     type = robot_config.get('tts', 'type')
+    debug_messages = robot_config.get('misc', 'debug_messages')
     
     if type != 'none':
         # set volume level
