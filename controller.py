@@ -1,4 +1,7 @@
 # TODO move all defs to the top of the file, out of the way of the flow of execution.
+# TODO add config option to disable charging stuff
+# TODO / MAYBE move charging stuff into specific hardware handlers and a module.
+# TODO make charge reporting more modular
 
 import platform
 import urllib2
@@ -12,6 +15,8 @@ import subprocess
 import os.path
 import networking
 import time
+
+from threading import Timer
 
 # fail gracefully if configparser is not installed
 try:
@@ -71,7 +76,6 @@ if debug_messages:
     print commandArgs
 
 # Charging stuff
-chargeCheckInterval = robot_config.getfloat('misc', 'chargeCheckInterval')
 chargeValue = robot_config.getfloat('misc', 'chargeValue')
 secondsToCharge = 60.0 * 60.0 * robot_config.getfloat('misc', 'charge_hours')
 secondsToDischarge = 60.0 * 60.0 * robot_config.getfloat('misc', 'discharge_hours')
@@ -304,7 +308,7 @@ def identifyRobotId():
     chatSocket.emit('identify_robot_id', robotID);
     appServerSocketIO.emit('identify_robot_id', robotID);
     
-waitCounter = 0
+waitCounter = 1
 
 identifyRobotId()
 
@@ -320,52 +324,84 @@ slow_for_low_battery = robot_config.getboolean('misc', 'slow_for_low_battery')
 auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
 secret_key = robot_config.get('misc', 'secret_key')
 
-while True:
-    time.sleep(1)
+# if auto_wifi is enabled, schdule a task for it.
+def auto_wifi_task():
+    if secret_key is not None:
+         configWifiLogin(secret_key)
+    t = Timer(10, auto_wifi_task)
+    t.daemon = True
+    t.start()
     
-    if (waitCounter % chargeCheckInterval) == 0:
-        if commandArgs.type == 'motor_hat':
-            chargeValue = module.updateChargeApproximation()
-            sendChargeState()
-            if slow_for_low_battery:
-                module.setSpeedBasedOnCharge(chargeValue)
+if auto_wifi:
+    auto_wifi_task()
 
-    if (waitCounter % 60) == 0:
-        if robot_config.getboolean('misc', 'slow_for_low_battery'):
-            if chargeValue < 30:
-                tts.say("battery low, %d percent" % int(chargeValue))
+lastInternetStatus=None
+#schedule a task to check internet status
+def internetStatus_task():
+    global lastInternetStatus
+    internetStatus = isInternetConnected()
+    if internetStatus != lastInternetStatus:
+        if internetStatus:
+            tts.say("ok")
+        else:
+            tts.say("missing internet connection")
+    lastInternetStatus = internetStatus
+    t= Timer(120, internetStatus_task)
+    t.daemon = True
+    t.start()
 
-                
-    if (waitCounter % 17) == 0:
-        if not isCharging():
-            if slow_for_low_battery:
-                if chargeValue <= 25:
-                    tts.say("need to charge")
-                
-            
-    if (waitCounter % 1000) == 0:
-        
-        internetStatus = isInternetConnected()
-        if internetStatus != lastInternetStatus:
-            if internetStatus:
-                tts.say("ok")
-            else:
-                tts.say("missing internet connection")
-        lastInternetStatus = internetStatus
+internetStatus_task()            
 
-        
-    if (waitCounter % 10) == 0:
-        if auto_wifi:
-            if secret_key is not None:
-                configWifiLogin(secret_key)
+#schedule a task to tell the server our robot it.
+def identifyRobot_task():
+    # tell the server what robot id is using this connection
+    identifyRobotId()
+    
+    if platform.system() == 'Linux':
+        ipInfoUpdate()
+    t=Timer(60, identifyRobot_task)
+    t.daemon = True
+    t.start()
 
-                
-    if (waitCounter % 60) == 0:
+identifyRobot_task()
 
-        # tell the server what robot id is using this connection
-        identifyRobotId()
-        
-        if platform.system() == 'Linux':
-            ipInfoUpdate()
 
-    waitCounter += 1
+#schedule a task to report charge status to the server
+#chargeCheckInterval = int(robot_config.getint('misc', 'chargeCheckInterval'))
+chargeCheckInterval = 5
+print "Charge Int=", chargeCheckInterval * 5 
+def sendChargeState_task():
+    if commandArgs.type == 'motor_hat':
+        chargeValue = module.updateChargeApproximation()
+        sendChargeState()
+        if slow_for_low_battery:
+            module.setSpeedBasedOnCharge(chargeValue)
+    t=Timer(chargeCheckInterval, sendChargeState_task)
+    t.daemon = True
+    t.start()
+
+sendChargeState_task()
+
+#schedule tasks to tts out a message about battery percentage and need to charge
+def reportBatteryStatus_task():
+    if chargeValue < 30:
+        tts.say("battery low, %d percent" % int(chargeValue))
+    t=timer(60, reportBatteryStatus_task())
+    t.daemon = True
+    t.start
+
+def reportNeedToCharge():
+    if not isCharging():
+        if chargeValue <= 25:
+            tts.say("need to charge")
+    t=Timer(60, reportNeedToCharge())
+    t.daemon = True
+    t.start()
+
+if ((robot_config.get('tts', 'type') != 'none') and (slow_for_low_battery)):
+    reportBatteryStatus()
+    reportNeedToCharge()
+
+while True:
+    time.sleep(10)
+                                
