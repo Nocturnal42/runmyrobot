@@ -48,7 +48,7 @@ def str2bool(v):
 
 # check the command line for and config file overrides.
 parser = argparse.ArgumentParser(description='start robot control program')
-parser.add_argument('--robot-id', help='Robot ID', default=robot_config.getint('robot', 'robot_id'))
+parser.add_argument('--robot-id', help='Robot ID', default=robot_config.get('robot', 'robot_id'))
 parser.add_argument('--info-server', help="Server that robot will connect to for information about servers and things", default=robot_config.get('misc', 'info_server'))
 parser.add_argument('--type', help="Serial or motor_hat or gopigo2 or gopigo3 or l298n or motozero or pololu", default=robot_config.get('robot', 'type'))
 parser.add_argument('--custom-hardware', type=str2bool, default=robot_config.getboolean('misc', 'custom_hardware'))
