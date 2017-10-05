@@ -367,9 +367,7 @@ identifyRobot_task()
 
 
 #schedule a task to report charge status to the server
-#chargeCheckInterval = int(robot_config.getint('misc', 'chargeCheckInterval'))
-chargeCheckInterval = 5
-print "Charge Int=", chargeCheckInterval * 5 
+chargeCheckInterval = int(robot_config.getint('misc', 'chargeCheckInterval'))
 def sendChargeState_task():
     if commandArgs.type == 'motor_hat':
         chargeValue = module.updateChargeApproximation()
