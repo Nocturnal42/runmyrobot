@@ -1,7 +1,16 @@
 import gopigo
+import time
+
+drive_time=None
+turn_time=None
 
 def setup(robot_config):
-    
+    global drive_time
+    global turn_time
+
+    drive_time=robot_config.getfloat('gopigo2', 'drive_time')
+    turn_time=robot_config.getfloat('gopigo2', 'turn_time')
+    return    
     
 def move(command):
     if command == 'L':

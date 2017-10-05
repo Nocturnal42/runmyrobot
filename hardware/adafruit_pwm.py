@@ -3,9 +3,8 @@ debug_messages=None
 
 def setup(robot_config):
     debug_messages = robot_config.get('misc', 'debug_messages');   
-    pwm = PWM(robot_config.get('adafruit_pwm', 'address')) 
-    
-    pwm.setPWMFreq(robot_config.get('adafruit_pwm', 'pwm_freq'))      # Set frequency to 60 Hz
+    pwm = PWM(int(robot_config.get('adafruit_pwm', 'address'),16)) 
+    pwm.setPWMFreq(robot_config.getint('adafruit_pwm', 'pwm_freq'))      # Set frequency to 60 Hz
     
 def move(command):
     if debug_messages:

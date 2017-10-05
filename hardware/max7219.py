@@ -44,105 +44,86 @@ def setup(robot_config):
         LEDEmoteSad = LEDEmoteSad[::-1]
         LEDEmoteTongue = LEDEmoteTongue[::-1]
         LEDEmoteSuprise = LEDEmoteSuprise[::-1]
+    SetLED_Off()
             
 def SetLED_On():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDOn[i]])
 
 def SetLED_Off():
-  if commandArgs.led == 'max7219': 
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDOff[i]])
 
 def SetLED_E_Smiley():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSmile[i]]) 
 
 def SetLED_E_Sad():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSad[i]])
 
 def SetLED_E_Tongue():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteTongue[i]])
 
 def SetLED_E_Suprised():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSuprise[i]])
 
 def SetLED_Low():
-  if commandArgs.led == 'max7219':
     # brightness MIN
     spi.writebytes([0x0a])
     spi.writebytes([0x00])
 
 def SetLED_Med():
-  if commandArgs.led == 'max7219':
     #brightness MED
     spi.writebytes([0x0a])
     spi.writebytes([0x06])
 
 def SetLED_Full():
-  if commandArgs.led == 'max7219':
     # brightness MAX
     spi.writebytes([0x0a])
     spi.writebytes([0x0F])        
 
 def SetLED_On():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDOn[i]])
 
 def SetLED_Off():
-  if commandArgs.led == 'max7219': 
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDOff[i]])
 
 def SetLED_E_Smiley():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSmile[i]]) 
 
 def SetLED_E_Sad():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSad[i]])
 
 def SetLED_E_Tongue():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteTongue[i]])
 
 def SetLED_E_Suprised():
-  if commandArgs.led == 'max7219':
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteSuprise[i]])
 
 def SetLED_Low():
-  if commandArgs.led == 'max7219':
     # brightness MIN
     spi.writebytes([0x0a])
     spi.writebytes([0x00])
 
 def SetLED_Med():
-  if commandArgs.led == 'max7219':
     #brightness MED
     spi.writebytes([0x0a])
     spi.writebytes([0x06])
 
 def SetLED_Full():
-  if commandArgs.led == 'max7219':
     # brightness MAX
     spi.writebytes([0x0a])
     spi.writebytes([0x0F])
         
-SetLED_Off()
-
 def move(command):
     if command == 'LED_OFF':
         SetLED_Off()

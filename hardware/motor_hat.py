@@ -5,6 +5,17 @@ import getpass
 import random
 import atexit
 
+try:
+    from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
+    motorsEnabled = True
+except ImportError:
+    print "You need to install Adafruit_MotorHAT"
+    print "Please install Adafruit_MotorHAT for python and restart this script."
+    print "To install: cd /usr/local/src && sudo git clone https://github.com/adafruit/Adafruit-Motor-HAT-Python-Library.git"
+    print "cd /usr/local/src/Adafruit-Motor-HAT-Python-Library && sudo python setup.py install"
+    print "Running in test mode."
+    print "Ctrl-C to quit"
+    motorsEnabled = False
 
 # todo: specificity is not correct, this is specific to a bot with a claw, not all motor_hat based bots
 from Adafruit_PWM_Servo_Driver import PWM
@@ -19,21 +30,10 @@ servoMin = [150, 150, 130]  # Min pulse length out of 4096
 servoMax = [600, 600, 270]  # Max pulse length out of 4096
 armServo = [300, 300, 300]
 
-try:
-    from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
-    motorsEnabled = True
-except ImportError:
-    print "You need to install Adafruit_MotorHAT"
-    print "Please install Adafruit_MotorHAT for python and restart this script."
-    print "To install: cd /usr/local/src && sudo git clone https://github.com/adafruit/Adafruit-Motor-HAT-Python-Library.git"
-    print "cd /usr/local/src/Adafruit-Motor-HAT-Python-Library && sudo python setup.py install"
-    print "Running in test mode."
-    print "Ctrl-C to quit"
-    motorsEnabled = False
-
 def setSpeedBasedOnCharge(chargeValue)
     global dayTimeDrivingSpeedActuallyUsed
     global nightTimeDrivingSpeedActuallyUsed
+
     if chargeValue < 30:
         multiples = [0.2, 1.0]
         multiple = random.choice(multiples)
@@ -84,8 +84,6 @@ def updateChargeApproximation():
 
     print "charge value updated to", chargeValue
     return chargeValue
-
-
 
 def turnOffMotors():
     mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
