@@ -3,5 +3,5 @@
 def setup(robot_config):
     return
 
-def move(direction):
+def say(*args):
     return

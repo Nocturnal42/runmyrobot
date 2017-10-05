@@ -45,27 +45,34 @@ def setup(robot_config):
     #call the tts handlers setup function
     tts_module.setup(robot_config)
 
-def say(message):
+def say(*args):
+    message = args[0]
 
     tempFilePath = os.path.join(tempDir, "text_" + str(uuid.uuid4()))
     f = open(tempFilePath, "w")
     f.write(message)
     f.close()
 
+    #check the number of arguments passed, and hand off as appropriate to the tts handler
+    if len(args) == 1:
+        tts_module.say(tempFilePath)
+    else:
+        tts_module.say(tempFilePath, args[1])
+          
     #os.system('"C:\Program Files\Jampal\ptts.vbs" -u ' + tempFilePath) Whaa?
     
-    if commandArgs.festival_tts:
+    #if commandArgs.festival_tts:
         # festival tts
-        os.system('festival --tts < ' + tempFilePath)
+    #    os.system('festival --tts < ' + tempFilePath)
     #os.system('espeak < /tmp/speech.txt')
 
-    else:
+    #else:
         # espeak tts
-        for hardwareNumber in (2, 0, 3, 1, 4):
-            if commandArgs.male:
-                os.system('cat ' + tempFilePath + ' | espeak --stdout | aplay -D plughw:%d,0' % hardwareNumber)
-            else:
-                os.system('cat ' + tempFilePath + ' | espeak -ven-us+f%d -s170 --stdout | aplay -D plughw:%d,0' % (commandArgs.voice_number, hardwareNumber))
+    #    for hardwareNumber in (2, 0, 3, 1, 4):
+    #        if commandArgs.male:
+    #            os.system('cat ' + tempFilePath + ' | espeak --stdout | aplay -D plughw:%d,0' % hardwareNumber)
+    #        else:
+    #            os.system('cat ' + tempFilePath + ' | espeak -ven-us+f%d -s170 --stdout | aplay -D plughw:%d,0' % (commandArgs.voice_number, hardwareNumber))
 
     os.remove(tempFilePath)    
     

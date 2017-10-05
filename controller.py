@@ -87,6 +87,11 @@ if robot_config.getboolean('misc', 'watchdog'):
 if debug_messages:
     print "info server:", infoServer
 
+# Load and start TTS
+import tts.tts as tts
+tts.setup(robot_config)
+global drivingSpeed
+
 # If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
 # controller for the specified hardware type.
 if commandArgs.custom_hardware:
@@ -99,11 +104,6 @@ else:
 
 #call the hardware module setup function
 module.setup(robot_config)
-
-# Load and start TTS
-import tts.tts as tts
-tts.setup(robot_config)
-global drivingSpeed
 
 # TODO Add the custom chat handler loader
 # Load a custom chat handler if enabled and exists, otherwise define a dummy.
@@ -158,7 +158,6 @@ def configWifiLogin(secretKey):
             say("Reseting")
             time.sleep(2)
             os.system("reboot")
-
         
     except:
         print "exception while configuring setting wifi", url
@@ -202,15 +201,14 @@ def handle_chat_message(args):
     elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
        exit()
     else:
-       tts.say(message)
+       tts.say(message, args)
 
 # TODO changeVolumeHighThenNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
 def changeVolumeHighThenNormal():
-
     os.system("amixer -c 2 cset numid=3 %d%%" % 100)
     time.sleep(25)
-    os.system("amixer -c 2 cset numid=3 %d%%" % commandArgs.tts_volume)
+    os.system("amixer -c 2 cset numid=3 %d%%" % robot_config.getint('tts', 'tts_volume'))
 
 def handleLoudCommand():
 
@@ -318,6 +316,10 @@ elif platform.system() == 'Linux':
 
 lastInternetStatus = False
 
+slow_for_low_battery = robot_config.getboolean('misc', 'slow_for_low_battery')
+auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
+secret_key = robot_config.get('misc', 'secret_key')
+
 while True:
     time.sleep(1)
     
@@ -325,7 +327,7 @@ while True:
         if commandArgs.type == 'motor_hat':
             chargeValue = module.updateChargeApproximation()
             sendChargeState()
-            if commandArgs.slow_for_low_battery:
+            if slow_for_low_battery:
                 module.setSpeedBasedOnCharge(chargeValue)
 
     if (waitCounter % 60) == 0:
@@ -336,9 +338,9 @@ while True:
                 
     if (waitCounter % 17) == 0:
         if not isCharging():
-            if commandArgs.slow_for_low_battery:
+            if slow_for_low_battery:
                 if chargeValue <= 25:
-                    say("need to charge")
+                    tts.say("need to charge")
                 
             
     if (waitCounter % 1000) == 0:
@@ -346,16 +348,16 @@ while True:
         internetStatus = isInternetConnected()
         if internetStatus != lastInternetStatus:
             if internetStatus:
-                say("ok")
+                tts.say("ok")
             else:
-                say("missing internet connection")
+                tts.say("missing internet connection")
         lastInternetStatus = internetStatus
 
         
     if (waitCounter % 10) == 0:
-        if commandArgs.auto_wifi:
-            if commandArgs.secret_key is not None:
-                configWifiLogin(commandArgs.secret_key)
+        if auto_wifi:
+            if secret_key is not None:
+                configWifiLogin(secret_key)
 
                 
     if (waitCounter % 60) == 0:
