@@ -44,9 +44,10 @@ def MoveArm(Duration, ArmCmd):
 #    RoboArm.ctrl_transfer(0x40,6,0x100,0,ArmCmd,3)
     CtrlTransfer(0x40,6,0x100,0,ArmCmd,3)
 
-def move(command):
+def move(args):
     global led
-
+    command = args['command']
+    
     if command == 'L':
         MoveArm(0.15, [0,2,0]) # Rotate counter-clockwise
     if command == 'R':

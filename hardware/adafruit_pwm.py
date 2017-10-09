@@ -6,7 +6,9 @@ def setup(robot_config):
     pwm = PWM(int(robot_config.get('adafruit_pwm', 'address'),16)) 
     pwm.setPWMFreq(robot_config.getint('adafruit_pwm', 'pwm_freq'))      # Set frequency to 60 Hz
     
-def move(command):
+def move(args):
+    command = args['command']
+    
     if debug_messages:
         print "move adafruit pwm command", command
         

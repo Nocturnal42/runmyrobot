@@ -54,6 +54,7 @@ parser.add_argument('--type', help="Serial or motor_hat or gopigo2 or gopigo3 or
 parser.add_argument('--custom-hardware', type=str2bool, default=robot_config.getboolean('misc', 'custom_hardware'))
 parser.add_argument('--custom-tts', type=str2bool, default=robot_config.getboolean('misc', 'custom_tts'))
 parser.add_argument('--custom-chat', type=str2bool, default=robot_config.getboolean('misc', 'custom_chat'))
+parser.add_argument('--ext-chat-command', type=str2bool, default=robot_config.getboolean('tts', 'ext_chat'))
 parser.add_argument('--debug-messages', type=str2bool, default=robot_config.getboolean('misc', 'debug_messages'))
 commandArgs = parser.parse_args()
 
@@ -64,13 +65,15 @@ robot_config.set('misc', 'info_server', commandArgs.info_server)
 robot_config.set('misc', 'custom_hardware', str(commandArgs.custom_hardware))
 robot_config.set('misc', 'custom_tts', str(commandArgs.custom_tts))
 robot_config.set('misc', 'custom_chat', str(commandArgs.custom_chat))
+robot_config.set('tts', 'ext_chat', str(commandArgs.ext_chat_command))
 robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
 
 
 # set variables pulled from the config
 robotID = commandArgs.robot_id
 infoServer = commandArgs.info_server
-debug_messages = commandArgs.debug_messages;
+debug_messages = commandArgs.debug_messages
+ext_chat = commandArgs.ext_chat_command
 
 if debug_messages:
     print commandArgs
@@ -108,6 +111,13 @@ else:
 
 #call the hardware module setup function
 module.setup(robot_config)
+move_handler = module.move
+
+#load the extended chat commands
+if ext_chat:
+    import extended_command
+    extended_command.move_handler=move_handler
+    move_handler = extended_command.move_auth
 
 # TODO Add the custom chat handler loader
 # Load a custom chat handler if enabled and exists, otherwise define a dummy.
@@ -193,6 +203,9 @@ def handle_exclusive_control(args):
                 
 def handle_chat_message(args):
 
+    if ext_chat:
+        extended_command.handler(args)
+            
     print "chat message received:", args
     rawMessage = args['message']
     withoutName = rawMessage.split(']')[1:]
@@ -221,7 +234,7 @@ def handleLoudCommand():
 handlingCommand = False
     
 def handle_command(args):
-
+        global handlingCommand
         handlingCommand = True
 
         if 'command' in args and 'robot_id' in args and args['robot_id'] == robotID:
@@ -229,10 +242,7 @@ def handle_command(args):
             if debug_messages:
                 print('got command', args)
 
-# TODO Modify move to take args, so custom controllers have access to the full message,
-# not just the command portion.
-            command = args['command']
-            module.move(command)
+            move_handler(args)
 
 
 # TODO WALL and LOUD don't belong here, should be in custom handler.

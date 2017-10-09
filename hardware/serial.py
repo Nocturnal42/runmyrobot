@@ -35,6 +35,8 @@ def setup(robot_config):
     else:
         telly.sendSettings(ser, commandArgs)
 
-def move( args ):
+def move(args):
+    command = args['command']
+    
     sendSerialCommand(ser, command)
 	

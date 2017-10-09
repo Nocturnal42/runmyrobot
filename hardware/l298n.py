@@ -31,10 +31,10 @@ def setup(robot_config):
     GPIO.cleanup()
 
 # TODO passing these as tuples may be unnecessary, it may accept lists as well. 
-    StepPinForward = tuple(robot_config.get('l298n', 'StepPinForward').split(',')
-    StepPinBackward = tuple(robot_config.get('l298n', 'StepPinBackward').split(',')
-    StepPinLeft = tuple(robot_config.get('l298n', 'StepPinLeft').split(',')
-    StepPinRight = tuple(robot_config.get('l298n', 'StepPinRight').split(',')
+    StepPinForward = tuple(robot_config.get('l298n', 'StepPinForward').split(','))
+    StepPinBackward = tuple(robot_config.get('l298n', 'StepPinBackward').split(','))
+    StepPinLeft = tuple(robot_config.get('l298n', 'StepPinLeft').split(','))
+    StepPinRight = tuple(robot_config.get('l298n', 'StepPinRight').split(','))
 	
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(StepPinForward, GPIO.OUT)
@@ -42,7 +42,8 @@ def setup(robot_config):
     GPIO.setup(StepPinLeft, GPIO.OUT)
     GPIO.setup(StepPinRight, GPIO.OUT)
 
-def move(direction):
+def move(args):
+    direction = args['command']
     if direction == 'F':
         GPIO.output(StepPinForward, GPIO.HIGH)
         time.sleep(sleeptime)

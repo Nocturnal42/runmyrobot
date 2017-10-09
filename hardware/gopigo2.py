@@ -12,7 +12,9 @@ def setup(robot_config):
     turn_time=robot_config.getfloat('gopigo2', 'turn_time')
     return    
     
-def move(command):
+def move(args):
+    command = args['command']
+    
     if command == 'L':
         gopigo.left_rot()
         time.sleep(0.15)

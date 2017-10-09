@@ -149,6 +149,8 @@ def setup(robot_config):
 
 
 def move( args ):
+    command = args['command']
+    
     global drivingSpeed
     
     now = datetime.datetime.now()

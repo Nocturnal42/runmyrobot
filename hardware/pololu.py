@@ -14,7 +14,8 @@ def setup(robot_config):
     global drivingSpeed
     drivingSpeed = robot_config.getint('pololu', 'driving_speed')
     
-def move(command):
+def move(args):
+    command = args['command']
     if direction == 'F':
 	      motors.setSpeeds(drivingSpeed, drivingSpeed)
 	      time.sleep(0.3)

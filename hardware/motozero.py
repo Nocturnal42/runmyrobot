@@ -49,7 +49,9 @@ def setup(robot_config):
     GPIO.setup(Motor4Enable,GPIO.OUT)
 	
 
-def move(direction):
+def move(args):
+    direction = args['command']
+    
     if direction == 'F':
         GPIO.output(Motor1B, GPIO.HIGH)
         GPIO.output(Motor1Enable,GPIO.HIGH)
