@@ -6,6 +6,7 @@ def setup(robot_config):
     global ser
     serialDevice = robot_config.get('serial', 'serial_device')
     # initialize serial connection
+
 #TODO add baud rate to config file
     serialBaud = 9600
     print "baud:", serialBaud

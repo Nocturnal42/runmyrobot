@@ -25,6 +25,7 @@ class DummyProcess:
 
 parser = argparse.ArgumentParser(description='robot control')
 parser.add_argument('camera_id')
+parser.add_argument('--info-server', help="Server that robot will connect to for information about servers and things and reporting status", default='runmyrobot.com')
 parser.add_argument('--xres', type=int, default=640)
 parser.add_argument('--yres', type=int, default=480)
 parser.add_argument('video_device_number', default=0, type=int)
@@ -54,7 +55,8 @@ parser.add_argument('--stream-key', default='hello')
 
 commandArgs = parser.parse_args()
 robotSettings = None
-server = "runmyrobot.com"
+server = 'runmyrobot.com'
+infoServer = commandArgs.info_server
 
 audioProcess = None
 videoProcess = None
@@ -83,7 +85,7 @@ else:
 print "initializing socket io"
 print "server:", server
 print "port:", port
-appServerSocketIO = SocketIO(server, port, LoggingNamespace)
+appServerSocketIO = SocketIO(infoServer, port, LoggingNamespace)
 print "finished initializing app server socket io"
 
 
@@ -93,7 +95,7 @@ print "finished initializing app server socket io"
 
 def getVideoPort():
 
-    url = 'https://%s/get_video_port/%s' % (server, commandArgs.camera_id)
+    url = 'https://%s/get_video_port/%s' % (infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['mpeg_stream_port']
 
@@ -101,19 +103,19 @@ def getVideoPort():
 
 def getAudioPort():
 
-    url = 'https://%s/get_audio_port/%s' % (server, commandArgs.camera_id)
+    url = 'https://%s/get_audio_port/%s' % (infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['audio_stream_port']
 
 
 def getRobotID():
 
-    url = 'https://%s/get_robot_id/%s' % (server, commandArgs.camera_id)
+    url = 'https://%s/get_robot_id/%s' % (infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['robot_id']
 
 def getWebsocketRelayHost():
-    url = 'https://%s/get_websocket_relay_host/%s' % (server, commandArgs.camera_id)
+    url = 'https://%s/get_websocket_relay_host/%s' % (infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)
 

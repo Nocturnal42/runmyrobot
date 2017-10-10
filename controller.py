@@ -75,6 +75,7 @@ robotID = commandArgs.robot_id
 infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
+no_chat_server = robot_config.get('misc', 'no_chat_server')
 
 if debug_messages:
     print commandArgs
@@ -276,7 +277,6 @@ controlSocketIO = networking.setupControlSocket(on_handle_command)
 chatSocket = networking.setupChatSocket(on_handle_chat_message)
 appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
 
-
 # If reverse SSH is enabled and if the key file exists, import it and hook it in.
 if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
     import reverse_ssh
@@ -315,7 +315,8 @@ if commandArgs.type == 'motor_hat':
     GPIO.add_event_callback(chargeIONumber, sendChargeStateCallback)
 
 def identifyRobotId():
-    chatSocket.emit('identify_robot_id', robotID);
+    if not no_chat_server:
+        chatSocket.emit('identify_robot_id', robotID);
     appServerSocketIO.emit('identify_robot_id', robotID);
     
 waitCounter = 1
@@ -369,7 +370,6 @@ def identifyRobot_task():
         ipInfoUpdate()
     
 schedule.task(60, identifyRobot_task)
-
 
 #schedule a task to report charge status to the server
 chargeCheckInterval = int(robot_config.getint('misc', 'chargeCheckInterval'))

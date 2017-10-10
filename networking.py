@@ -12,6 +12,7 @@ robot_id = None
 appServerSocketIO = None
 controlSocketIO = None
 chatSocket = None
+no_chat_server = None
 
 def getControlHostPort():
     url = 'https://%s/get_control_host_port/%s' % (infoServer, robot_id)
@@ -49,10 +50,13 @@ def setupSocketIO(robot_config):
     global chatHostPort
     global infoServer
     global robot_id
-   
+    global no_chat_server
+    
     debug_messages = robot_config.get('misc', 'debug_messages') 
     robot_id = robot_config.getint('robot', 'robot_id')
     infoServer = robot_config.get('misc', 'info_server')
+    no_chat_server = robot_config.get('misc', 'no_chat_server')
+    
     controlHostPort = getControlHostPort()
     chatHostPort = getChatHostPort()
     
@@ -71,12 +75,16 @@ def setupControlSocket(on_handle_command):
 
 def setupChatSocket(on_handle_chat_message):
     global chatSocket
-    print "connecting to chat socket.io"
-    chatSocket = SocketIO(chatHostPort['host'], chatHostPort['port'], LoggingNamespace)
-    print 'finished using socket io to connect to chat ', chatHostPort
-    startListenForChatServer()
-    chatSocket.on('chat_message_with_name', on_handle_chat_message)
-    return chatSocket
+    
+    if not no_chat_server:
+        print "connecting to chat socket.io"
+        chatSocket = SocketIO(chatHostPort['host'], chatHostPort['port'], LoggingNamespace)
+        print 'finished using socket io to connect to chat ', chatHostPort
+        startListenForChatServer()
+        chatSocket.on('chat_message_with_name', on_handle_chat_message)
+        return chatSocket
+    else:
+        print "chat server connection disabled"
 
 def setupAppSocket(on_handle_exclusive_control):
     global appServerSocketIO
