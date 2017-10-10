@@ -1,5 +1,6 @@
 import subprocess
 import thread
+import networking
 
 keyfile = None
 host = None
@@ -10,6 +11,10 @@ def setupReverseSsh(robot_config):
     
     keyfile = robot_config.get('misc', 'reverse_ssh_key_file')
     host = robot_config.get('misc', 'reverse_ssh_host')
+
+    networking.appServerSocketIO.on('reverse_ssh_8872381747239', reverse_ssh.startReverseSshProcess)
+    networking.appServerSocketIO.on('end_reverse_ssh_8872381747239', reverse_ssh.endReverseSshProcess)
+
 
 def handleStartReverseSshProcess(args):
     print "starting reverse ssh"

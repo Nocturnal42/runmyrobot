@@ -15,6 +15,7 @@ import subprocess
 import os.path
 import networking
 import time
+import schedule
 
 from threading import Timer
 
@@ -116,6 +117,7 @@ move_handler = module.move
 #load the extended chat commands
 if ext_chat:
     import extended_command
+    extended_command.setup(robot_config)
     extended_command.move_handler=move_handler
     move_handler = extended_command.move_auth
 
@@ -213,8 +215,8 @@ def handle_chat_message(args):
     urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
     if message[1] == ".":
        exit()
-    elif robot_config.getboolen('tts', 'anon_tts') != True and args['anonymous'] == True:
-       exit()   
+    elif robot_config.getboolean('tts', 'anon_tts') != True and args['anonymous'] == True:
+       exit()
     elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
        exit()
     else:
@@ -279,8 +281,6 @@ appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
 if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
     import reverse_ssh
     setupReverseSsh(robot_config)
-    appServerSocketIO.on('reverse_ssh_8872381747239', reverse_ssh.startReverseSshProcess)
-    appServerSocketIO.on('end_reverse_ssh_8872381747239', reverse_ssh.endReverseSshProcess)
 
 
 def ipInfoUpdate():
@@ -347,6 +347,7 @@ if auto_wifi:
 
 lastInternetStatus=None
 #schedule a task to check internet status
+
 def internetStatus_task():
     global lastInternetStatus
     internetStatus = isInternetConnected()
@@ -356,11 +357,8 @@ def internetStatus_task():
         else:
             tts.say("missing internet connection")
     lastInternetStatus = internetStatus
-    t= Timer(120, internetStatus_task)
-    t.daemon = True
-    t.start()
 
-internetStatus_task()            
+schedule.repeat_task(120, internetStatus_task)
 
 #schedule a task to tell the server our robot it.
 def identifyRobot_task():
@@ -369,11 +367,8 @@ def identifyRobot_task():
     
     if platform.system() == 'Linux':
         ipInfoUpdate()
-    t=Timer(60, identifyRobot_task)
-    t.daemon = True
-    t.start()
-
-identifyRobot_task()
+    
+schedule.task(60, identifyRobot_task)
 
 
 #schedule a task to report charge status to the server
@@ -384,31 +379,23 @@ def sendChargeState_task():
         sendChargeState()
         if slow_for_low_battery:
             module.setSpeedBasedOnCharge(chargeValue)
-    t=Timer(chargeCheckInterval, sendChargeState_task)
-    t.daemon = True
-    t.start()
 
-sendChargeState_task()
+schedule.task(chargeCheckInterval, sendChargeState_task)
 
 #schedule tasks to tts out a message about battery percentage and need to charge
 def reportBatteryStatus_task():
     if chargeValue < 30:
         tts.say("battery low, %d percent" % int(chargeValue))
-    t=timer(60, reportBatteryStatus_task())
-    t.daemon = True
-    t.start
+
 
 def reportNeedToCharge():
     if not isCharging():
         if chargeValue <= 25:
             tts.say("need to charge")
-    t=Timer(60, reportNeedToCharge())
-    t.daemon = True
-    t.start()
 
 if ((robot_config.get('tts', 'type') != 'none') and (slow_for_low_battery)):
-    reportBatteryStatus()
-    reportNeedToCharge()
+    schedule.repeat_task(60, reportBatteryStatus_task)
+    schedule.repeat_task(17, reportNeedToCharge)
 
 while True:
     time.sleep(10)
