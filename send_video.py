@@ -25,9 +25,13 @@ class DummyProcess:
 
 parser = argparse.ArgumentParser(description='robot control')
 parser.add_argument('camera_id')
-parser.add_argument('--info-server', help="Server that robot will connect to for information about servers and things and reporting status", default='runmyrobot.com')
-parser.add_argument('--xres', type=int, default=640)
-parser.add_argument('--yres', type=int, default=480)
+parser.add_argument('--info-server', help="handles things such as rest API requests about ports, for example 1.1.1.1:8082", default='runmyrobot.com')
+parser.add_argument('--info-server-protocol', default="https", help="either https or http")
+parser.add_argument('--app-server-socketio-host', default="letsrobot.tv", help="wherever app is running")
+parser.add_argument('--app-server-socketio-port', default=8022, help="typically use 8022 for prod, 8122 for dev, and 8125 for dev2")
+parser.add_argument('--api-server', help="Server that robot will connect to listen for API update events", default='api.letsrobot.tv')
+parser.add_argument('--xres', type=int, default=768)
+parser.add_argument('--yres', type=int, default=432)
 parser.add_argument('video_device_number', default=0, type=int)
 parser.add_argument('--audio-device-number', default=1, type=int)
 parser.add_argument('--kbps', default=350, type=int)
@@ -47,20 +51,15 @@ parser.add_argument('--mic-channels', type=int, help='microphone channels, typic
 parser.add_argument('--audio-input-device', default='Microphone (HD Webcam C270)') # currently, this option is only used for windows screen capture
 parser.add_argument('--stream-key', default='hello')
 
-
-#global numVideoRestarts
-#numVideoRestarts = 0
-#global numAudioRestarts
-#numAudioRestarts = 0
-
 commandArgs = parser.parse_args()
 robotSettings = None
+resolutionChanged = False
 server = 'runmyrobot.com'
 infoServer = commandArgs.info_server
+apiServer = commandArgs.api_server
 
 audioProcess = None
 videoProcess = None
-
 
 from socketIO_client import SocketIO, LoggingNamespace
 
@@ -68,34 +67,36 @@ from socketIO_client import SocketIO, LoggingNamespace
 os.system("sudo modprobe bcm2835-v4l2")
 
 
-if commandArgs.env == "dev":
-    print "using dev port 8122"
-    port = 8122
-elif commandArgs.env == "dev2":
-    print "using dev port 8125"
-    port = 8125
-elif commandArgs.env == "prod":
-    print "using prod port 8022"
-    port = 8022
-else:
-    print "invalid environment"
-    sys.exit(0)
+#if commandArgs.env == "dev":
+#    print "using dev port 8122"
+#    port = 8122
+#elif commandArgs.env == "dev2":
+#    print "using dev port 8125"
+#    port = 8125
+#elif commandArgs.env == "prod":
+#    print "using prod port 8022"
+#    port = 8022
+#else:
+#    print "invalid environment"
+#    sys.exit(0)
 
 
 print "initializing socket io"
 print "server:", server
-print "port:", port
-appServerSocketIO = SocketIO(infoServer, port, LoggingNamespace)
+#print "port:", port
+
+
+
+
+infoServerProtocol = commandArgs.info_server_protocol
+
+print "trying to connect to app server socket io", commandArgs.app_server_socketio_host, commandArgs.app_server_socketio_port
+appServerSocketIO = SocketIO(commandArgs.app_server_socketio_host, commandArgs.app_server_socketio_port, LoggingNamespace)
 print "finished initializing app server socket io"
-
-
-#ffmpeg -f qtkit -i 0 -f mpeg1video -b 400k -r 30 -s 320x240 http://52.8.81.124:8082/hello/320/240/
-
-
 
 def getVideoPort():
 
-    url = 'https://%s/get_video_port/%s' % (infoServer, commandArgs.camera_id)
+    url = '%s://%s/get_video_port/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['mpeg_stream_port']
 
@@ -103,33 +104,30 @@ def getVideoPort():
 
 def getAudioPort():
 
-    url = 'https://%s/get_audio_port/%s' % (infoServer, commandArgs.camera_id)
+    url = '%s://%s/get_audio_port/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['audio_stream_port']
 
 
 def getRobotID():
 
-    url = 'https://%s/get_robot_id/%s' % (infoServer, commandArgs.camera_id)
+    url = '%s://%s/get_robot_id/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)['robot_id']
 
 def getWebsocketRelayHost():
-    url = 'https://%s/get_websocket_relay_host/%s' % (infoServer, commandArgs.camera_id)
+    url = '%s://%s/get_websocket_relay_host/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
     response = robot_util.getWithRetry(url)
     return json.loads(response)
 
 def getOnlineRobotSettings(robotID):
-
-    # https://api.letsrobot.tv/api/v1/robots/90073095
-
-    url = 'https://api.letsrobot.tv/api/v1/robots/%s' % (robotID)
+    url = 'https://%s/api/v1/robots/%s' % (apiServer, robotID)
     response = robot_util.getWithRetry(url)
     return json.loads(response)
         
 def identifyRobotId():
     appServerSocketIO.emit('identify_robot_id', robotID);
-    
+
 
 
 def randomSleep():
@@ -144,7 +142,13 @@ def randomSleep():
 def startVideoCaptureLinux():
 
     videoPort = getVideoPort()
+    print "getting websocket relay host for video"
     websocketRelayHost = getWebsocketRelayHost()
+
+    print "websocket relay host for video:", websocketRelayHost
+
+    videoHost = websocketRelayHost['host']
+
 
     # set brightness
     if (robotSettings.brightness is not None):
@@ -162,7 +166,7 @@ def startVideoCaptureLinux():
         os.system("v4l2-ctl -c saturation={saturation}".format(saturation=robotSettings.saturation))
 
     
-    videoCommandLine = '/usr/local/bin/ffmpeg -f v4l2 -framerate 25 -video_size 640x480 -i /dev/video{video_device_number} {rotation_option} -f mpegts -codec:v mpeg1video -s {xres}x{yres} -b:v {kbps}k -bf 0 -muxdelay 0.001 http://{server}:{video_port}/{stream_key}/{xres}/{yres}/'.format(video_device_number=robotSettings.video_device_number, rotation_option=rotationOption(), kbps=robotSettings.kbps, server=server, video_port=videoPort, xres=robotSettings.xres, yres=robotSettings.yres, stream_key=robotSettings.stream_key)
+    videoCommandLine = '/usr/local/bin/ffmpeg -f v4l2 -framerate 25 -video_size {xres}x{yres} -r 25 -i /dev/video{video_device_number} {rotation_option} -f mpegts -codec:v mpeg1video -s {xres}x{yres} -b:v {kbps}k -bf 0 -muxdelay 0.001 http://{video_host}:{video_port}/{stream_key}/{xres}/{yres}/'.format(video_device_number=robotSettings.video_device_number, rotation_option=rotationOption(), kbps=robotSettings.kbps, video_host=videoHost, video_port=videoPort, xres=robotSettings.xres, yres=robotSettings.yres, stream_key=robotSettings.stream_key)
 
     print videoCommandLine
     return subprocess.Popen(shlex.split(videoCommandLine))
@@ -172,9 +176,9 @@ def startAudioCaptureLinux():
 
     audioPort = getAudioPort()
     websocketRelayHost = getWebsocketRelayHost()
-    
+    audioHost = websocketRelayHost['host']
 
-    audioCommandLine = '/usr/local/bin/ffmpeg -f alsa -ar 44100 -ac %d -i hw:%d -f mpegts -codec:a mp2 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (robotSettings.mic_channels, robotSettings.audio_device_number, server, audioPort, robotSettings.stream_key)
+    audioCommandLine = '/usr/local/bin/ffmpeg -f alsa -ar 44100 -ac %d -i hw:%d -f mpegts -codec:a mp2 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (robotSettings.mic_channels, robotSettings.audio_device_number, audioHost, audioPort, robotSettings.stream_key)
 
     print audioCommandLine
     return subprocess.Popen(shlex.split(audioCommandLine))
@@ -232,26 +236,42 @@ def killallFFMPEGIn30Seconds():
 
 #todo, this needs to work differently. likely the configuration will be json and pull in stuff from command line rather than the other way around.
 def overrideSettings(commandArgs, onlineSettings):
-
+    global resolutionChanged
+    resolutionChanged = False
     c = copy.deepcopy(commandArgs)
     print "onlineSettings:", onlineSettings
-    c.mic_enabled = onlineSettings['mic_enabled']
+    if 'mic_enabled' in onlineSettings:
+        c.mic_enabled = onlineSettings['mic_enabled']
+    if 'xres' in onlineSettings:
+        if c.xres != onlineSettings['xres']:
+            resolutionChanged = True
+        c.xres = onlineSettings['xres']
+    if 'yres' in onlineSettings:
+        if c.yres != onlineSettings['yres']:
+            resolutionChanged = True
+        c.yres = onlineSettings['yres']
     print "onlineSettings['mic_enabled']:", onlineSettings['mic_enabled']
     return c
 
 
 def refreshFromOnlineSettings():
     global robotSettings
+    global resolutionChanged
     print "refreshing from online settings"
     onlineSettings = getOnlineRobotSettings(robotID)
     robotSettings = overrideSettings(commandArgs, onlineSettings)
 
     if not robotSettings.mic_enabled:
-        print "KILING**********************"
-        #todo: just kill the audio, not both
+        print "KILLING**********************"
         if audioProcess is not None:
-            print "KILING**********************2"            
+            print "KILLING**********************"
             audioProcess.kill()
+
+    if resolutionChanged:
+        print "KILLING VIDEO DUE TO RESOLUTION CHANGE**********************"
+        if videoProcess is not None:
+            print "KILLING**********************"
+            videoProcess.kill()
 
     else:
         print "NOT KILLING***********************"
@@ -281,6 +301,7 @@ def main():
     appServerSocketIO.on('command_to_robot', onCommandToRobot)
     appServerSocketIO.on('connection', onConnection)
     appServerSocketIO.on('robot_settings_changed', onRobotSettingsChanged)
+
 
 
 
@@ -316,6 +337,7 @@ def main():
         print "-----------------" + str(count) + "-----------------"
         
         appServerSocketIO.wait(seconds=1)
+
 
 
         # todo: note about the following ffmpeg_process_exists is not technically true, but need to update
