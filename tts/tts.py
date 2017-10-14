@@ -20,11 +20,11 @@ def setup(robot_config):
         # set volume level
 
         # tested for 3.5mm audio jack
-        if robot_config.getint(tts_volume) > 50:
+        if robot_config.getint('tts', 'tts_volume') > 50:
             os.system("amixer set PCM -- -100")
 
         # tested for USB audio device
-        os.system("amixer -c 2 cset numid=3 %d%%" % commandArgs.tts_volume)
+        os.system("amixer -c 2 cset numid=3 %d%%" % robot_config.getint('tts', 'tts_volume'))
 
 
     #import the appropriate tts handler module.

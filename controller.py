@@ -75,7 +75,7 @@ robotID = commandArgs.robot_id
 infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
-no_chat_server = robot_config.get('misc', 'no_chat_server')
+no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
 
 if debug_messages:
     print commandArgs
@@ -205,11 +205,11 @@ def handle_exclusive_control(args):
                 
                 
 def handle_chat_message(args):
+    print "chat message received:", args
 
     if ext_chat:
         extended_command.handler(args)
             
-    print "chat message received:", args
     rawMessage = args['message']
     withoutName = rawMessage.split(']')[1:]
     message = "".join(withoutName)

@@ -20,3 +20,5 @@ gpio.conf
 letsrobot.conf
 hardware/hardware_custom.example.py
 tts/tts_custom.py
+chat_custom.py
+tts/secret.py

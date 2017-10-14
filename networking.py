@@ -55,7 +55,7 @@ def setupSocketIO(robot_config):
     debug_messages = robot_config.get('misc', 'debug_messages') 
     robot_id = robot_config.getint('robot', 'robot_id')
     infoServer = robot_config.get('misc', 'info_server')
-    no_chat_server = robot_config.get('misc', 'no_chat_server')
+    no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
     
     controlHostPort = getControlHostPort()
     chatHostPort = getChatHostPort()

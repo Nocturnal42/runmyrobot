@@ -2,6 +2,8 @@ import os
 
 # TODO 
 
+# /stationary only able to move left and right.
+
 # Impliment as many of these as possible.
 
 #/mod username
