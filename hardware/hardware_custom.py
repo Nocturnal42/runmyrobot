@@ -16,7 +16,7 @@ def setup(robot_config):
     module.setup(robot_config)
 
     
-def move(command):
+def move(args):
     # Your custom command interpreter code goes here
     
     

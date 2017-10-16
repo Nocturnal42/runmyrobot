@@ -19,8 +19,9 @@ def setup(robot_config):
                             aws_secret_access_key=secret.aws_Secret,
                             region_name=secret.aws_Region)
 
-    polly = boto3.client('polly')
-
+    polly = boto3.client('polly', aws_access_key_id=secret.aws_Key,
+                            aws_secret_access_key=secret.aws_Secret,
+                            region_name=secret.aws_Region)
 
 def say(message, *args):
     if (len(args) == 0): # simple say

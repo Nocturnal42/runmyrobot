@@ -214,15 +214,18 @@ def handle_chat_message(args):
     withoutName = rawMessage.split(']')[1:]
     message = "".join(withoutName)
     urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
-    if message[1] == ".":
-       exit()
-    elif robot_config.getboolean('tts', 'anon_tts') != True and args['anonymous'] == True:
-       exit()
-    elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
-       exit()
-    else:
-       tts.say(message, args)
-
+    try:
+        if message[1] == ".":
+            exit()
+        elif robot_config.getboolean('tts', 'anon_tts') != True and args['anonymous'] == True:
+            exit()
+        elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
+            exit()
+        else:
+            tts.say(message, args)
+    except IndexError:
+        exit()
+            
 # TODO changeVolumeHighThenNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
 def changeVolumeHighThenNormal():
