@@ -1,3 +1,4 @@
+import os
 
 type = 'none'
 tts_module = None
@@ -40,7 +41,7 @@ def say(*args):
 
     #check the number of arguments passed, and hand off as appropriate to the tts handler
     if len(args) == 1:
-        tts_module.say(tempFilePath)
+        tts_module.say(message)
     else:
-        tts_module.say(tempFilePath, args[1])
+        tts_module.say(message, args[1])
     

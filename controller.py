@@ -47,6 +47,8 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')    
 
+# TODO assess these and other options in the config to see which ones are most 
+# appropriate to be overidden from the command line.
 # check the command line for and config file overrides.
 parser = argparse.ArgumentParser(description='start robot control program')
 parser.add_argument('--robot-id', help='Robot ID', default=robot_config.get('robot', 'robot_id'))
@@ -76,6 +78,7 @@ infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
 no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
+
 
 if debug_messages:
     print commandArgs
@@ -214,6 +217,7 @@ def handle_chat_message(args):
     withoutName = rawMessage.split(']')[1:]
     message = "".join(withoutName)
     urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
+
     try:
         if message[1] == ".":
             exit()
@@ -233,9 +237,8 @@ def changeVolumeHighThenNormal():
     time.sleep(25)
     os.system("amixer -c 2 cset numid=3 %d%%" % robot_config.getint('tts', 'tts_volume'))
 
-def handleLoudCommand():
-
-    thread.start_new_thread(changeVolumeHighThenNormal, ())
+def handleLoudCommand(seconds):
+    thread.start_new_thread(changeVolumeHighThenNormal, (seconds,))
 
 handlingCommand = False
     
@@ -252,15 +255,22 @@ def handle_command(args):
 
 
 # TODO WALL and LOUD don't belong here, should be in custom handler.
+            if command in ("SOUND2", "WALL", "LOUD"):
+                handlingCommand = False
+            
             if command == 'LOUD':
-                handleLoudCommand()
-                
+                handleLoudCommand(25)
+
             if commandArgs.type == 'motor_hat':
                 if command == 'WALL':
-                    handleLoudCommand()
+                    handleLoudCommand(25)
                     os.system("aplay -D plughw:2,0 /home/pi/wall.wav")
+                if command == 'SOUND2':
+                    handleLoudCommand(25)
+                    os.system("aplay -D plughw:2,0 /home/pi/sound2.wav")
                                                         
         handlingCommand = False
+	   
 
 def on_handle_command(*args):
    if handlingCommand:
