@@ -23,7 +23,10 @@ def say(message, args):
     f.write(message)
     f.close()
 
-    os.system('festival --tts < ' + tempFilePath)
+#    os.system('festival --tts < ' + tempFilePath)
 
+# In theory the temp file isn't needed, but text2wave doesn't output to a pipe properly.
+    os.system('echo "'+message+'" | text2wave -o ' + tempFilePath)
+    os.system('aplay -D plugh1,0 ' + tempFilePath)
     os.remove(tempFilePath)    
     
