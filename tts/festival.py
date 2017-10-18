@@ -16,17 +16,16 @@ def setup(robot_config):
     if debug_messages:
        print "TTS temporary directory:", tempDir
 
-def say(message, args):
+def say(*args):
+    message = args[0]
 
     tempFilePath = os.path.join(tempDir, "text_" + str(uuid.uuid4()))
     f = open(tempFilePath, "w")
     f.write(message)
     f.close()
 
-#    os.system('festival --tts < ' + tempFilePath)
-
-# In theory the temp file isn't needed, but text2wave doesn't output to a pipe properly.
-    os.system('echo "'+message+'" | text2wave -o ' + tempFilePath)
-    os.system('aplay -D plugh1,0 ' + tempFilePath)
-    os.remove(tempFilePath)    
+    os.system('text2wave -o ' + tempFilePath +'.wav ' + tempFilePath)
+    os.system('aplay -D plughw:1,0 ' + tempFilePath + '.wav')
+    os.remove(tempFilePath + '.wav')
+    os.remove(tempFilePath)
     

@@ -2,6 +2,9 @@ import os
 
 # TODO 
 
+# If I pull the send_video stuff into controller, the ability to restart the ffmpeg process would
+# be useful
+
 # /stationary only able to move left and right.
 
 # Impliment as many of these as possible.
