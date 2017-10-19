@@ -4,16 +4,23 @@ import secret
 import os
 import random
 
+
 client = None
 polly = None
 voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joanna', 'Joey', 'Justin',
-             'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]
-             
+             'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]             
 users = {}
+robot_voice = None
 
 def setup(robot_config):
     global client
     global polly
+    global robot_voice
+    global users
+    
+    owner = robot_config.get('robot', 'owner')
+    owner_voice = robot_config.get('polly', 'owner_voice')
+    robot_voice = robot_config.get('polly', 'robot_voice')
 
     client = boto3.Session(aws_access_key_id=secret.aws_Key,
                             aws_secret_access_key=secret.aws_Secret,
@@ -22,32 +29,37 @@ def setup(robot_config):
     polly = boto3.client('polly', aws_access_key_id=secret.aws_Key,
                             aws_secret_access_key=secret.aws_Secret,
                             region_name=secret.aws_Region)
-
+                            
+    users[owner] = owner_voice
+    
 def say(message, *args):
     if (len(args) == 0): # simple say
-        return
-
-    user = args[0]['name']
-
-    if (args[0]['anonymous'] == True):
-        voice = 'Mizuki'
+        response = polly.synthesize_speech(
+            OutputFormat = 'mp3',
+            VoiceId = robot_voice,
+            Text = message,
+        )
     else:
-        if user not in users:
-            users[user] = random.choice(voices)
+        user = args[0]['name']
 
-        voice = users[user]    
+        if (args[0]['anonymous'] == True):
+            voice = 'Mizuki'
+        else:
+            if user not in users:
+                users[user] = random.choice(voices)
+            voice = users[user]    
     
-    rawMessage = args[0]['message']
-    withoutName = rawMessage.split(']')[1:]
-    message = "".join(withoutName)
+        rawMessage = args[0]['message']
+        withoutName = rawMessage.split(']')[1:]
+        message = "".join(withoutName)
 
-    print user + " voice " + voice + ": " + message
+        print user + " voice " + voice + ": " + message
     
-    response = polly.synthesize_speech(
-        OutputFormat = 'mp3',
-        VoiceId = voice,
-        Text = message,
-    )
+        response = polly.synthesize_speech(
+            OutputFormat = 'mp3',
+            VoiceId = voice,
+            Text = message,
+        )
 
     if "AudioStream" in response:
 #        out = open ('/tmp/polly.mp3', 'w+')
