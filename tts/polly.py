@@ -4,6 +4,7 @@ import boto3
 from subprocess import Popen, PIPE
 import os
 import random
+import extended_command
 
 # to satisfy both python 2 and 3, goes away if keys are in conf
 try:
@@ -18,6 +19,15 @@ voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joann
 users = {}
 robot_voice = None
 hw_num = None
+
+def new_voice(*args):
+    global users
+
+    print(args)
+    if (args[1]['anonymous'] != True):
+        users[args[1]['name']] = random.choice(voices)
+   
+    
 
 def setup(robot_config):
     global client
@@ -41,6 +51,9 @@ def setup(robot_config):
                             
     users[owner] = owner_voice
     
+    if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add voice command
+        extended_command.add_command('.new_voice', new_voice)
+        
 def say(message, *args):
     if (len(args) == 0): # simple say
         response = polly.synthesize_speech(
