@@ -28,7 +28,7 @@ def say(*args):
     f.close()
 
     os.system('text2wave -o ' + tempFilePath +'.wav ' + tempFilePath)
-    os.system('aplay -D plughw:i%d,0 ' + tempFilePath + '.wav' % hw_num )
+    os.system('aplay -D plughw:%d,0 ' % hw_num + tempFilePath + '.wav')
     os.remove(tempFilePath + '.wav')
     os.remove(tempFilePath)
     
