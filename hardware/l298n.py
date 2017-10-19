@@ -1,3 +1,4 @@
+from __future__ import print_function
 import RPi.GPIO as GPIO
 import time
 
@@ -26,7 +27,7 @@ def setup(robot_config):
     
     if debug_messages:
         mode=GPIO.getmode()
-        print " mode ="+str(mode)
+        print(" mode ="+str(mode))
 
     GPIO.cleanup()
 

@@ -35,7 +35,7 @@ def setup(robot_config):
 
 def SpeedNormal():
     maxSpeedEnabled = False
-    print "normal speed"
+    print("normal speed")
 
 #MDD10 speed and movement controls
 def move(args):
@@ -45,17 +45,17 @@ def move(args):
     if command == 'MAXSPEED':
         handleMaxSpeedCommand()
         maxSpeedEnabled = True
-        print "max speed"
+        print("max speed")
         schedule.single_task(120, SpeedNormal)        
         return
         
     if maxSpeedEnabled:
-        print "AT MAX....................."
-        print maxSpeedEnabled
+        print("AT MAX.....................")
+        print(maxSpeedEnabled)
         moveMDD10(command, 100)
     else:
-        print "NORMAL................."
-        print maxSpeedEnabled
+        print("NORMAL.................")
+        print(maxSpeedEnabled)
         moveMDD10(command, int(float(drivingSpeedActuallyUsed) / 2.55))                
 
 

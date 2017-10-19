@@ -1,7 +1,12 @@
+from __future__ import print_function
 import os
 import time
 import traceback
-import urllib2
+import sys
+if (sys.version_info > (3, 0)):
+    import urllib.request as urllib2
+else:
+    import urllib2
 import getpass
 import json
 
@@ -14,11 +19,11 @@ def getWithRetry(url):
 
     for retryNumber in range(2000):
         try:
-            print "GET", url
+            print("GET", url)
             response = urllib2.urlopen(url).read()
             break
         except:
-            print "could not open url", url
+            print ("could not open url", url)
             traceback.print_exc()
             time.sleep(2)
 
@@ -34,14 +39,14 @@ def sendSerialCommand(ser, command):
 
     # loop to collect input
     #s = "f"
-    #print "string:", s
-    print str(command.lower())
+    #print("string:", s)
+    print(str(command.lower()))
     ser.write(command.lower() + "\r\n")     # write a string
     #ser.write(s)
     ser.flush()
 
     #while ser.in_waiting > 0:
-    #    print "read:", ser.read()
+    #    print("read:", ser.read())
 
     #ser.close()
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from Adafruit_PWM_Servo_Driver import PWM
 debug_messages=None
 
@@ -10,7 +11,7 @@ def move(args):
     command = args['command']
     
     if debug_messages:
-        print "move adafruit pwm command", command
+        print("move adafruit pwm command", command)
         
     if command == 'L':
         pwm.setPWM(1, 0, 300) # turn left

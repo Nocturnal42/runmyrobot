@@ -1,4 +1,8 @@
 import os
+import sys
+
+if (sys.version_info > (3, 0)):
+    import importlib
 
 type = 'none'
 tts_module = None
@@ -25,13 +29,23 @@ def setup(robot_config):
 
     #import the appropriate tts handler module.
     if robot_config.getboolean('misc', 'custom_tts'):
-        try:
-            tts_module = __import__('tts.tts_custom', fromlist=['hardware_custom'])
-        except ImportError:
-            print "Unable to open custom tts handler"
-            tts_module = __import__("tts."+type, fromlist=[type])
+        if (sys.version_info > (3, 0)):
+            try:
+                tts_module = importlib.import_module('tts.tts_custom')
+            except ImportError:
+        	    print("unable to load tts/tts_custom.py")
+        	    tts_module = importlib.import_module('tts.'+type)
+        else:
+            try:
+                tts_module = __import__('tts.tts_custom', fromlist=['tts_custom'])
+            except ImportError:
+                print("unable to load tts/tts_custom.py")
+                tts_module = __import__("tts."+type, fromlist=[type])
     else:    
-        tts_module = __import__("tts."+type, fromlist=[type])    
+        if (sys.version_info > (3, 0)):
+            tts_module = importlib.import_module('tts.'+type)
+        else:
+            tts_module = __import__("tts."+type, fromlist=[type])    
 
     #call the tts handlers setup function
     tts_module.setup(robot_config)

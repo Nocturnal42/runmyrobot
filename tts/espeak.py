@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import tempfile
 import uuid
@@ -23,7 +24,7 @@ def setup(robot_config):
     #set the location to write the temp file to
     tempDir = tempfile.gettempdir()
     if debug_messages:
-       print "TTS temporary directory:", tempDir
+       print("TTS temporary directory:", tempDir)
 
 def say(*args):
     message = args[0]

@@ -1,40 +1,50 @@
+from __future__ import print_function
+
 # TODO move all defs to the top of the file, out of the way of the flow of execution.
 # TODO add config option to disable charging stuff
 # TODO / MAYBE move charging stuff into specific hardware handlers and a module.
 # TODO make charge reporting more modular
+# TODO full python3 support will involve installing the adafruit drivers, not using the ones from the repo
 
 import platform
-import urllib2
 import traceback
 import re
 import argparse
 import telly
 import robot_util
-import thread
 import subprocess
 import os.path
 import networking
 import time
 import schedule
+import sys
 
+if (sys.version_info > (3, 0)):
+    import importlib
+    import urllib.request as urllib2
+    import _thread as thread
+else:
+    import urllib2
+    import thread
+ 
 from threading import Timer
 
 # fail gracefully if configparser is not installed
 try:
-    import ConfigParser
+    from configparser import ConfigParser
+    robot_config = ConfigParser()
 except ImportError:
-    print "Please check that you are using python 2.7 and that configparser is installed (sudo python -m pip install ConfigParser)\n"
+    print("Missing configparser module (python -m pip install configparser)")
     sys.exit()
 
-# parse the letsrobot.conf file and set the basic values
-robot_config = ConfigParser.ConfigParser()
+
 try: 
     robot_config.readfp(open('letsrobot.conf'))
 except IOError:
-    print "unable to read letsrobot.conf, please check that you have copied letsrobot.sample.conf to letsrobot.conf and modified it appropriately."
+    print("unable to read letsrobot.conf, please check that you have copied letsrobot.sample.conf to letsrobot.conf and modified it appropriately.")
     sys.exit()
 except:
-    print "Error in letsrobot.conf:", sys.exc_info()[0]
+    print ("Error in letsrobot.conf:", sys.exc_info()[0])
     sys.exit()
 
 # This is required to allow us to get True / False boolean values from the
@@ -81,7 +91,7 @@ no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
 
 
 if debug_messages:
-    print commandArgs
+    print(commandArgs)
 
 # Charging stuff
 chargeValue = robot_config.getfloat('misc', 'chargeValue')
@@ -97,7 +107,7 @@ if robot_config.getboolean('misc', 'watchdog'):
     os.system("sudo /usr/sbin/service watchdog start")
 
 if debug_messages:
-    print "info server:", infoServer
+    print("info server:", infoServer)
 
 # Load and start TTS
 import tts.tts as tts
@@ -107,12 +117,23 @@ global drivingSpeed
 # If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
 # controller for the specified hardware type.
 if commandArgs.custom_hardware:
-    try:
-        module = __import__('hardware.hardware_custom', fromlist=['hardware_custom'])
-    except ImportError:
-        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+    if (sys.version_info > (3, 0)):
+        try:
+        	  module = importlib.import_module('hardware.hardware_custom')
+        except ImportError:
+        	  print("unable to load hardware/hardware_custom.py")
+        	  module = importlib.import_module('hardware.'+commandArgs.type)
+    else:
+        try:
+            module = __import__('hardware.hardware_custom', fromlist=['hardware_custom'])
+        except ImportError:
+            print("unable to load hardware/hardware_custom.py")
+            module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
 else:    
-    module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+    if (sys.version_info > (3, 0)):
+    	  module = importlib.import_module('hardware.'+commandArgs.type)
+    else:
+        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
 
 #call the hardware module setup function
 module.setup(robot_config)
@@ -131,9 +152,9 @@ if ext_chat:
 #def setServoPulse(channel, pulse):
 #  pulseLength = 1000000                   # 1,000,000 us per second
 #  pulseLength /= 60                       # 60 Hz
-#  print "%d us per period" % pulseLength
+#  print("%d us per period" % pulseLength)
 #  pulseLength /= 4096                     # 12 bits of resolution
-#  print "%d us per bit" % pulseLength
+#  print("%d us per bit" % pulseLength)
 #  pulse *= 1000
 #  pulse /= pulseLength
 #  pwm.setPWM(channel, 0, pulse)
@@ -150,10 +171,10 @@ def configWifiLogin(secretKey):
     
     url = 'https://%s/get_wifi_login/%s' % (infoServer, secretKey)
     try:
-        print "GET", url
+        print("GET", url)
         response = urllib2.urlopen(url).read()
         responseJson = json.loads(response)
-        print "get wifi login response:", response
+        print("get wifi login response:", response)
 
         with open("/etc/wpa_supplicant/wpa_supplicant.conf", 'r') as originalWPAFile:
             originalWPAText = originalWPAFile.read()
@@ -161,15 +182,15 @@ def configWifiLogin(secretKey):
         wpaText = WPA_FILE_TEMPLATE.format(name=responseJson['wifi_name'], password=responseJson['wifi_password'])
 
 
-        print "original(" + originalWPAText + ")"
-        print "new(" + wpaText + ")"
+        print("original(" + originalWPAText + ")")
+        print("new(" + wpaText + ")")
         
         if originalWPAText != wpaText:
 
             wpaFile = open("/etc/wpa_supplicant/wpa_supplicant.conf", 'w')        
 
-            print wpaText
-            print
+            print(wpaText)
+            print()
             wpaFile.write(wpaText)
             wpaFile.close()
 
@@ -180,7 +201,7 @@ def configWifiLogin(secretKey):
             os.system("reboot")
         
     except:
-        print "exception while configuring setting wifi", url
+        print("exception while configuring setting wifi", url)
         traceback.print_exc()
 
 #def times(lst, number):
@@ -202,13 +223,13 @@ def handle_exclusive_control(args):
             status = args['status']
 
         if status == 'start':
-                print "start exclusive control"
+                print("start exclusive control")
         if status == 'end':
-                print "end exclusive control"
+                print("end exclusive control")
                 
                 
 def handle_chat_message(args):
-    print "chat message received:", args
+    print("chat message received:", args)
 
     if ext_chat:
         extended_command.handler(args)
@@ -298,18 +319,18 @@ if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_confi
 
 def ipInfoUpdate():
     appServerSocketIO.emit('ip_information',
-                  {'ip': subprocess.check_output(["hostname", "-I"]), 'robot_id': robotID})
+                  {'ip': subprocess.check_output(["hostname", "-I"]).decode('utf-8'), 'robot_id': robotID})
 
 
 # true if it's on the charger and it needs to be charging
 def isCharging():
-    print "is charging current value", chargeValue
+    print("is charging current value", chargeValue)
 
     # only tested for motor hat robot currently, so only runs with that type
     if commandArgs.type == "motor_hat":
-        print "RPi.GPIO is in sys.modules"
+        print("RPi.GPIO is in sys.modules")
         if chargeValue < 99: # if it's not full charged already
-            print "charge value is low"
+            print("charge value is low")
             return GPIO.input(chargeIONumber) == 1 # return whether it's connected to the dock
 
     return False
@@ -318,7 +339,7 @@ def sendChargeState():
     charging = isCharging()
     chargeState = {'robot_id': robotID, 'charging': charging}
     appServerSocketIO.emit('charge_state', chargeState)
-    print "charge state:", chargeState
+    print("charge state:", chargeState)
 
 def sendChargeStateCallback(x):
     sendChargeState()

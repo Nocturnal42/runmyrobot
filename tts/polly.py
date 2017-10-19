@@ -1,9 +1,15 @@
+# TODO : Move aws_key stuff into letsrobot.conf
+
 import boto3
 from subprocess import Popen, PIPE
-import secret
 import os
 import random
 
+# to satisfy both python 2 and 3, goes away if keys are in conf
+try:
+    import secret
+except ImportError:
+    import tts.secret as secret
 
 client = None
 polly = None
@@ -56,7 +62,7 @@ def say(message, *args):
         withoutName = rawMessage.split(']')[1:]
         message = "".join(withoutName)
 
-        print user + " voice " + voice + ": " + message
+        print(user + " voice " + voice + ": " + message)
     
         response = polly.synthesize_speech(
             OutputFormat = 'mp3',

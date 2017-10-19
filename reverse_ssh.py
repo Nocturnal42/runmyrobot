@@ -1,3 +1,4 @@
+from __future__ import print_function
 import subprocess
 import thread
 import networking
@@ -17,7 +18,7 @@ def setupReverseSsh(robot_config):
 
 
 def handleStartReverseSshProcess(args):
-    print "starting reverse ssh"
+    print("starting reverse ssh")
     appServerSocketIO.emit("reverse_ssh_info", "starting")
 
     returnCode = subprocess.call(["/usr/bin/ssh",
@@ -28,13 +29,13 @@ def handleStartReverseSshProcess(args):
                                   host])
 
     appServerSocketIO.emit("reverse_ssh_info", "return code: " + str(returnCode))
-    print "reverse ssh process has exited with code", str(returnCode)
+    print("reverse ssh process has exited with code", str(returnCode))
 
     
 def handleEndReverseSshProcess(args):
-    print "handling end reverse ssh process"
+    print("handling end reverse ssh process")
     resultCode = subprocess.call(["killall", "ssh"])
-    print "result code of killall ssh:", resultCode
+    print("result code of killall ssh:", resultCode)
 
 def startReverseSshProcess(*args):
    thread.start_new_thread(handleStartReverseSshProcess, args)

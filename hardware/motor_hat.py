@@ -1,3 +1,4 @@
+from __future__ import print_function
 import RPi.GPIO as GPIO
 import datetime
 import os
@@ -9,12 +10,12 @@ try:
     from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
     motorsEnabled = True
 except ImportError:
-    print "You need to install Adafruit_MotorHAT"
-    print "Please install Adafruit_MotorHAT for python and restart this script."
-    print "To install: cd /usr/local/src && sudo git clone https://github.com/adafruit/Adafruit-Motor-HAT-Python-Library.git"
-    print "cd /usr/local/src/Adafruit-Motor-HAT-Python-Library && sudo python setup.py install"
-    print "Running in test mode."
-    print "Ctrl-C to quit"
+    print("You need to install Adafruit_MotorHAT")
+    print("Please install Adafruit_MotorHAT for python and restart this script.")
+    print("To install: cd /usr/local/src && sudo git clone https://github.com/adafruit/Adafruit-Motor-HAT-Python-Library.git")
+    print("cd /usr/local/src/Adafruit-Motor-HAT-Python-Library && sudo python setup.py install")
+    print("Running in test mode.")
+    print("Ctrl-C to quit")
     motorsEnabled = False
 
 # todo: specificity is not correct, this is specific to a bot with a claw, not all motor_hat based bots
@@ -56,12 +57,12 @@ def updateChargeApproximation():
         file = open(path, 'r')
         try:
             chargeValue = float(file.read())
-            print "error reading float from file", path
+            print("error reading float from file", path)
         except:
             chargeValue = 0
         file.close()
     else:
-        print "setting charge value to zero"
+        print("setting charge value to zero")
         chargeValue = 0
 
     chargePerSecond = 1.0 / secondsToCharge
@@ -82,7 +83,7 @@ def updateChargeApproximation():
     file.write(str(chargeValue))
     file.close()        
 
-    print "charge value updated to", chargeValue
+    print("charge value updated to", chargeValue)
     return chargeValue
 
 def turnOffMotors():
@@ -99,7 +100,7 @@ def incrementArmServo(channel, amount):
 
     armServo[channel] += amount
 
-    print "arm servo positions:", armServo
+    print("arm servo positions:", armServo)
 
     if armServo[channel] > servoMax[channel]:
         armServo[channel] = servoMax[channel]
@@ -157,7 +158,7 @@ def move( args ):
     now_time = now.time()
     # if it's late, make the robot slower
     if now_time >= datetime.time(21,30) or now_time <= datetime.time(9,30):
-        #print "within the late time interval"
+        #print("within the late time interval")
         drivingSpeedActuallyUsed = nightTimeDrivingSpeedActuallyUsed
     else:
         drivingSpeedActuallyUsed = dayTimeDrivingSpeedActuallyUsed

@@ -89,7 +89,6 @@ def add_command(command, function):
     
 def devmode(command, args):
     global dev_mode
-
     if is_authed(args['name']) == 2: # Owner
         if command[2] == 'on':
             dev_mode = True
@@ -131,7 +130,7 @@ def tts(command, args):
             # TTS int volume command
             return
 
-def mio(command, args):
+def mic(command, args):
     if is_authed(args['name']) == 2: # Owner
         if command[2] == 'mute':
             # Mic Mute

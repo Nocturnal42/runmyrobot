@@ -13,7 +13,7 @@ def setup(robot_config):
  
     #Check if the arm is detected and warn if not
     if RoboArm is None:
-        print ("USB Arm not found")
+        print("USB Arm not found")
         sys.exit()
      
 
