@@ -2,6 +2,9 @@ import os
 
 # TODO 
 
+# Pull list of moderators
+
+
 # If I pull the send_video stuff into controller, the ability to restart the ffmpeg process would
 # be useful
 
@@ -70,73 +73,109 @@ def setup(robot_config):
     
     owner = robot_config.get('robot', 'owner')
     v4l2_ctl = robot_config.get('misc', 'v4l2-ctl')
-    
 
-def handler(args):
+# check if the user is the owner or moderator, 0 for not, 1 for moderator, 2 for owner
+def is_authed(user):
+    if user == owner:
+        return(2)
+    else:
+        return(0)
+
+
+# add a new command handler, this will also allow for overriding existing ones.
+def add_command(command, function):
+    global commands
+    commands[command] = function
+    
+def devmode(command, args):
     global dev_mode
+
+    if is_authed(args['name']) == 2: # Owner
+        if command[2] == 'on':
+            dev_mode = True
+        elif command[2] == 'off':
+            dev_mode = False
+
+def anon(command, args):
     global anon_control
     global anon_tts
 
-    
+    if is_authed(args['name']): # Moderator
+        if command[2] == 'on':
+            anon_control = True
+            anon_tts = True
+        elif command[2] == 'off':
+            anon_control = False
+            anon_tts = False
+        elif command[2] == 'control':
+            if command[3] == 'on':
+                anon_control = True
+            elif command[3] == 'off':
+                anon_control = False
+        elif command[2] == 'tts':
+            if command[3] == 'on':
+                anon_tts = True
+            elif command[3] == 'off':
+                anon_tts = False
+
+def tts(command, args):
+    if is_authed(args['name']) == 2: # Owner
+
+        if command[2] == 'mute':
+            # TTS Mute command
+            return
+        elif command[2] == 'unmute':
+            # TTS Unmute command
+            return
+        elif command[2] == 'vol':
+            # TTS int volume command
+            return
+
+def mio(command, args):
+    if is_authed(args['name']) == 2: # Owner
+        if command[2] == 'mute':
+            # Mic Mute
+            return
+        elif command[2] == 'unmute':
+            # Mic Unmute
+            return
+
+def brightness(command, args):
+    if is_authed(args['name']): # Moderator
+        os.system(v4l2_ctl + " --set-ctrl brightness=" . int(command[2]))
+        return
+
+def contrast(command, args):
+    if is_authed(args['name']): # Moderator
+        os.system(v4l2_ctl + " --set-ctrl contrast=" . int(command[2]))
+        return
+
+def saturation(command, args):
+    if is_authed(args['name']): # Moderator
+        os.system(v4l2_ctl + " --set-ctrl saturation=" . int(command[2]))
+	
+
+
+# This is a dictionary of commands and their handler functions
+commands={    '.devmode'    :    devmode,
+	            '.anon'       :    anon,
+	            '.tts'        :    tts,
+	            '.mic'        :    mic,
+              '.brightness' :    brightness,
+              '.contrast'   :    contrast,    
+              '.saturation' :    saturation
+	        }
+
+def handler(args):  
     user = args['name']
     command = args['message']
+# TODO : This will not work with robot names with spaces, update it to split on ']'
+# [1:]
     command = command.split(' ')
     if command != None:
         try:
-            if command[1][0] == '\\':
-# TODO load mods with a robocasters mods, and update this check to include them
-                if user == owner:
-                    if command[1] == '\\devmode':
-                        if command[2] == 'on':
-                            dev_mode = True
-                        elif command[2] == 'off':
-                            dev_mode = False
-                    elif command[1] == '\\anon':
-                        if command[2] == 'on':
-                            anon_control = True
-                            anon_tts = True
-                        elif command[2] == 'off':
-                            anon_control = False
-                            anon_tts = False
-                        elif command[2] == 'control':
-                            if command[3] == 'on':
-                                anon_control = True
-                            elif command[3] == 'off':
-                                anon_control = False
-                        elif command[2] == 'tts':
-                            if command[3] == 'on':
-                                anon_tts = True
-                            elif command[3] == 'off':
-                                anon_tts = False
-                    elif command[1] == '\\tts':
-                        if command[2] == 'mute':
-                            # TTS Mute command
-                            return
-                        elif command[2] == 'unmute':
-                            # TTS Unmute command
-                            return
-                        elif command[2] == 'vol':
-                            # TTS int volume command
-                            return
-                    elif command[1] == '\\mic':
-                        if command[2] == 'mute':
-                            # Mic Mute
-                            return
-                        elif command[2] == 'unmute':
-                            # Mic Unmute
-                            return
-                    elif command[1] == 'brightness':
-                        # Set brightness
-                        os.system(v4l2_ctl + " --set-ctrl brightness=" . command[2])
-                        return
-                    elif command[1] == 'contrast':
-                        # Set contrast
-                        os.system(v4l2_ctl + " --set-ctrl contrast=" . command[2])
-                        return
-                    elif command[1] == 'saturation':
-                        # Set saturation
-                        os.system(v4l2_ctl + " --set-ctrl saturation=" . command[2])
-                        return
+            if command[1] in commands:
+                commands[command[1]](command, args)
         except:
             pass                
 
