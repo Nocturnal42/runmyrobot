@@ -4,13 +4,16 @@ import uuid
 
 tempDir = None
 debug_messages = None
+hw_num = None
 
 def setup(robot_config):
     global debug_messages
     global tempDir
-        
+    global hw_num
+    
     debug_messages = robot_config.get('misc', 'debug_messages')
-
+    hw_num = robot_config.getint('tts', 'hw_num')
+    
     #set the location to write the temp file to
     tempDir = tempfile.gettempdir()
     if debug_messages:
@@ -25,7 +28,7 @@ def say(*args):
     f.close()
 
     os.system('text2wave -o ' + tempFilePath +'.wav ' + tempFilePath)
-    os.system('aplay -D plughw:1,0 ' + tempFilePath + '.wav')
+    os.system('aplay -D plughw:i%d,0 ' + tempFilePath + '.wav' % hw_num )
     os.remove(tempFilePath + '.wav')
     os.remove(tempFilePath)
     

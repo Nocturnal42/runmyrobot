@@ -11,17 +11,20 @@ voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joann
              'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]             
 users = {}
 robot_voice = None
+hw_num = None
 
 def setup(robot_config):
     global client
     global polly
     global robot_voice
     global users
+    global hw_num
     
     owner = robot_config.get('robot', 'owner')
     owner_voice = robot_config.get('polly', 'owner_voice')
     robot_voice = robot_config.get('polly', 'robot_voice')
-
+    hw_num = robot_config.getint('tts', 'hw_num')
+    
     client = boto3.Session(aws_access_key_id=secret.aws_Key,
                             aws_secret_access_key=secret.aws_Secret,
                             region_name=secret.aws_Region)
@@ -67,6 +70,6 @@ def say(message, *args):
 #        out.close()
 #        player = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:1,1', '-q', '/tmp/polly.mp3'], stdin=PIPE, bufsize=1)
 #        os.remove('/tmp/polly.mp3')
-        play = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:0,0', '-q', '-'], stdin=PIPE, bufsize=1)
+        play = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:%d,0' % hw_num, '-q', '-'], stdin=PIPE, bufsize=1)
         play.communicate(response['AudioStream'].read())
 
