@@ -4,7 +4,6 @@ import boto3
 from subprocess import Popen, PIPE
 import os
 import random
-import extended_command
 
 # to satisfy both python 2 and 3, goes away if keys are in conf
 try:
@@ -52,6 +51,7 @@ def setup(robot_config):
     users[owner] = owner_voice
     
     if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add voice command
+        import extended_command
         extended_command.add_command('.new_voice', new_voice)
         
 def say(message, *args):

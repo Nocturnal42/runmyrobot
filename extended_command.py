@@ -1,4 +1,7 @@
+from __future__ import print_function
 import os
+import networking
+import tts.tts as tts
 
 # TODO 
 
@@ -63,7 +66,6 @@ move_handler = None
 mods=[]
 dev_mode = None
 anon_control = None
-anon_tts = None
 owner = None
 v4l2_ctl = None
 
@@ -73,11 +75,16 @@ def setup(robot_config):
     
     owner = robot_config.get('robot', 'owner')
     v4l2_ctl = robot_config.get('misc', 'v4l2-ctl')
+    
+    mods = networking.getOwnerDetails(owner)['moderators']
+    print("Moderators :", mods)
 
 # check if the user is the owner or moderator, 0 for not, 1 for moderator, 2 for owner
 def is_authed(user):
     if user == owner:
         return(2)
+    elif user in mods:
+        return(1)
     else:
         return(0)
 
@@ -87,57 +94,68 @@ def add_command(command, function):
     global commands
     commands[command] = function
     
-def devmode(command, args):
+def devmode_handler(command, args):
     global dev_mode
-    if is_authed(args['name']) == 2: # Owner
-        if command[2] == 'on':
-            dev_mode = True
-        elif command[2] == 'off':
-            dev_mode = False
+    global dev_mode_mods
+    
+    if len(command) > 2:
+        if is_authed(args['name']) == 2: # Owner
+            if command[2] == 'on':
+                dev_mode = True
+                dev_mode_mods = False
+            elif command[2] == 'off':
+                dev_mode = False
+            elif command[2] == 'mods':
+                dev_mode = True
+                dev_mode_mods = True
 
-def anon(command, args):
+def anon_handler(command, args):
     global anon_control
-    global anon_tts
 
-    if is_authed(args['name']): # Moderator
-        if command[2] == 'on':
-            anon_control = True
-            anon_tts = True
-        elif command[2] == 'off':
-            anon_control = False
-            anon_tts = False
-        elif command[2] == 'control':
-            if command[3] == 'on':
+    if len(command) > 2:
+        if is_authed(args['name']): # Moderator
+            if command[2] == 'on':
                 anon_control = True
-            elif command[3] == 'off':
+                tts.unmute_anon_tts()
+            elif command[2] == 'off':
                 anon_control = False
-        elif command[2] == 'tts':
-            if command[3] == 'on':
-                anon_tts = True
-            elif command[3] == 'off':
-                anon_tts = False
+                tts.mute_anon_tts()
+            elif len(command) > 3:
+                if command[2] == 'control':
+                    if command[3] == 'on':
+                        anon_control = True
+                    elif command[3] == 'off':
+                        anon_control = False
+                elif command[2] == 'tts':
+                    if command[3] == 'on':
+                        tts.unmute_anon_tts()
+                    elif command[3] == 'off':
+                        tts.mute_anon_tts()
 
-def tts(command, args):
+def tts_handler(command, args):
+    print("tts :", tts)
+    if len(command) > 2:
+        if is_authed(args['name']) == 2: # Owner
+            if command[2] == 'mute':
+                print("mute")
+                tts.mute_tts()
+                return
+            elif command[2] == 'unmute':
+                tts.unmute_tts()
+                return
+            elif command[2] == 'vol':
+                # TTS int volume command
+                return
+
+def mic_handler(command, args):
     if is_authed(args['name']) == 2: # Owner
-
-        if command[2] == 'mute':
-            # TTS Mute command
-            return
-        elif command[2] == 'unmute':
-            # TTS Unmute command
-            return
-        elif command[2] == 'vol':
-            # TTS int volume command
-            return
-
-def mic(command, args):
-    if is_authed(args['name']) == 2: # Owner
-        if command[2] == 'mute':
-            # Mic Mute
-            return
-        elif command[2] == 'unmute':
-            # Mic Unmute
-            return
+        if len(command) > 2:
+            if command[2] == 'mute':
+                # Mic Mute
+                return
+            elif command[2] == 'unmute':
+                # Mic Unmute
+                return
 
 def brightness(command, args):
     if is_authed(args['name']): # Moderator
@@ -156,34 +174,47 @@ def saturation(command, args):
 
 
 # This is a dictionary of commands and their handler functions
-commands={    '.devmode'    :    devmode,
-	            '.anon'       :    anon,
-	            '.tts'        :    tts,
-	            '.mic'        :    mic,
+commands={    '.devmode'    :    devmode_handler,
+	            '.anon'       :    anon_handler,
+	            '.tts'        :    tts_handler,
+	            '.mic'        :    mic_handler,
               '.brightness' :    brightness,
               '.contrast'   :    contrast,    
               '.saturation' :    saturation
 	        }
 
 def handler(args):  
-    user = args['name']
     command = args['message']
 # TODO : This will not work with robot names with spaces, update it to split on ']'
 # [1:]
     command = command.split(' ')
     if command != None:
-        try:
+#        try:
             if command[1] in commands:
                 commands[command[1]](command, args)
-        except:
-            pass                
+#        except:
+#            print("Exception in extended command handler")
+#            pass                
 
 # This function checks the user sending the command, and if authorized
 # call the move handler.
 def move_auth(args):
-    move_user = args['name']
+    user = args['name']
     anon = args['anonymous']
     
-    if auth_mode == None:
+    if anon_control == False and anon:
+        exit()
+    elif dev_mode_mods:
+        if is_authed(user):
+            move_handler(args)
+        else:
+            exit()
+    elif dev_mode:
+        if is_authed(user) == 2: # owner
+            move_handler(args)
+        else:
+            exit()
+    else:
         move_handler(args)
+ 
     return

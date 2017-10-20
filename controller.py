@@ -8,7 +8,6 @@ from __future__ import print_function
 
 import platform
 import traceback
-import re
 import argparse
 import telly
 import robot_util
@@ -81,14 +80,12 @@ robot_config.set('misc', 'custom_chat', str(commandArgs.custom_chat))
 robot_config.set('tts', 'ext_chat', str(commandArgs.ext_chat_command))
 robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
 
-
 # set variables pulled from the config
 robotID = commandArgs.robot_id
 infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
 no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
-
 
 if debug_messages:
     print(commandArgs)
@@ -237,14 +234,9 @@ def handle_chat_message(args):
     rawMessage = args['message']
     withoutName = rawMessage.split(']')[1:]
     message = "".join(withoutName)
-    urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
 
     try:
         if message[1] == ".":
-            exit()
-        elif robot_config.getboolean('tts', 'anon_tts') != True and args['anonymous'] == True:
-            exit()
-        elif robot_config.getboolean('tts', 'filter_url_tts') == True and re.search(urlRegExp, message):
             exit()
         else:
             tts.say(message, args)

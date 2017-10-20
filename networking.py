@@ -31,6 +31,12 @@ def getChatHostPort():
     url = 'https://%s/get_chat_host_port/%s' % (infoServer, robot_id)
     response = robot_util.getWithRetry(url).decode('utf-8')
     return json.loads(response)
+    
+def getOwnerDetails(username):
+    url = 'https://api.letsrobot.tv/api/v1/accounts/%s' % (username)
+    response = robot_util.getWithRetry(url).decode('utf-8')
+    return json.loads(response)
+    
 
 def waitForAppServer():
     while True:
