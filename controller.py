@@ -1,9 +1,6 @@
 from __future__ import print_function
 
 # TODO move all defs to the top of the file, out of the way of the flow of execution.
-# TODO add config option to disable charging stuff
-# TODO / MAYBE move charging stuff into specific hardware handlers and a module.
-# TODO make charge reporting more modular
 # TODO full python3 support will involve installing the adafruit drivers, not using the ones from the repo
 
 import traceback
@@ -84,6 +81,8 @@ infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
 no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
+enable_async = robot_config.getboolean('misc, 'enable_async')
+
 
 if debug_messages:
     print(commandArgs)
@@ -138,16 +137,6 @@ if ext_chat:
 # TODO Add the custom chat handler loader
 # Load a custom chat handler if enabled and exists, otherwise define a dummy.
 
-#def setServoPulse(channel, pulse):
-#  pulseLength = 1000000                   # 1,000,000 us per second
-#  pulseLength /= 60                       # 60 Hz
-#  print("%d us per period" % pulseLength)
-#  pulseLength /= 4096                     # 12 bits of resolution
-#  print("%d us per bit" % pulseLength)
-#  pulse *= 1000
-#  pulse /= pulseLength
-#  pwm.setPWM(channel, 0, pulse)
-
 def isInternetConnected():
     try:
         urllib2.urlopen('https://www.google.com', timeout=1)
@@ -193,6 +182,7 @@ def configWifiLogin(secretKey):
         print("exception while configuring setting wifi", url)
         traceback.print_exc()
 
+# TODO figure out this code. Looks like it is needed for motor_hat and mdd10
 #def times(lst, number):
 #    return [x*number for x in lst]
 #
@@ -205,7 +195,7 @@ def configWifiLogin(secretKey):
 
 
 # TODO impliment a exclusive control function in hardware / tts / chat custom.
-# this will probably mean a dummy function in all the handlers.    
+# this will probably mean a dummy function in all the handlers.
 def handle_exclusive_control(args):
         if 'status' in args and 'robot_id' in args and args['robot_id'] == robotID:
 
@@ -278,7 +268,7 @@ def handle_command(args):
 	   
 
 def on_handle_command(*args):
-   if handlingCommand:
+   if handlingCommand and not enable_async:
        return
    else:
        thread.start_new_thread(handle_command, args)
