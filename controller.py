@@ -283,6 +283,11 @@ if commandArgs.custom_hardware:
             module = importlib.import_module('hardware.'+commandArgs.type)
         else:
             module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+else:
+    if (sys.version_info > (3, 0)):
+        module = importlib.import_module('hardware.'+commandArgs.type)
+    else:
+        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
 
 #call the hardware module setup function
 module.setup(robot_config)
