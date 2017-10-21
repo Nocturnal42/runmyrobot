@@ -21,10 +21,9 @@ def setup(robot_config, chat_handler):
         extended_command.add_command('.reboot', reboot)    
     
     main_chat_handler = chat_handler
-    exit()
     
     
-def handle_chat(args) {
+def handle_chat(args):
     # Your custom chat handling code goes here
 
 
@@ -35,7 +34,6 @@ def handle_chat(args) {
      
     # Call the main chat handler
     main_chat_handler(args)
-    exit()
 
 
 

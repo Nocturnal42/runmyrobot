@@ -1,7 +1,7 @@
-import tts.tts as tts
 import os
 # Example for adding custom code to the controller
-hw_num - None
+hw_num = None
+module = None
 
 def setup(robot_config):
     global hw_num
@@ -10,8 +10,9 @@ def setup(robot_config):
     # Your custom setup code goes here
     
  
-    # call the default tts setup routine
-    tts.setup(robot_config) 
+    # Load the appropriate tts module and call the default tts setup routine
+    module = __import__("tts."+robot_config.get('robot', 'type'), fromlist=[robot_config.get('robot', 'type')])
+    module.setup(robot_config)
        
 def say(*args):
     message = args[0]
@@ -32,22 +33,14 @@ def say(*args):
         elif user == 'mikey':
             prefix = "meander.mp3"
         else:
-            tts.say(args)
-            exit()
+            prefix = None
                 
-        if tts.mute:
-            exit()
-            
-        os.system('/usr/bin/mpg123-alsa -a hw:%d,0 %s' % hw_num, prefix)
-        tts.say(args)
+        if prefix != None:
+            os.system('/usr/bin/mpg123-alsa -a hw:%d,0 %s' % hw_num, prefix)
 
-    else:  # Simple Say
-        tts/say(message)
-        
     # Your custom tts interpreter code goes here
 
     
     
     # This code calls the default command interpreter function for your hardware.
     module.say(args)
-    

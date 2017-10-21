@@ -217,7 +217,7 @@ def handle_command(args):
                     os.system("aplay -D plughw:2,0 /home/pi/sound2.wav")
                                                         
         handlingCommand = False
-	   
+       
 
 def on_handle_command(*args):
    if handlingCommand and not enable_async:
@@ -272,43 +272,35 @@ global drivingSpeed
 # If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
 # controller for the specified hardware type.
 if commandArgs.custom_hardware:
-    if (sys.version_info > (3, 0)):
-        try:
-        	  module = importlib.import_module('hardware.hardware_custom')
-        except ImportError:
-        	  print("unable to load hardware/hardware_custom.py")
-        	  module = importlib.import_module('hardware.'+commandArgs.type)
-    else:
-        try:
+    if os.path.exists('hardware/hardware_custom.py'):
+        if (sys.version_info > (3, 0)):
+              module = importlib.import_module('hardware.hardware_custom')
+        else:
             module = __import__('hardware.hardware_custom', fromlist=['hardware_custom'])
-        except ImportError:
-            print("unable to load hardware/hardware_custom.py")
-            module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
-else:    
-    if (sys.version_info > (3, 0)):
-    	  module = importlib.import_module('hardware.'+commandArgs.type)
     else:
-        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+        print("Unable to find hardware/hardware_custom.py")    
+        if (sys.version_info > (3, 0)):
+            module = importlib.import_module('hardware.'+commandArgs.type)
+        else:
+            module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
 
 #call the hardware module setup function
 module.setup(robot_config)
 move_handler = module.move
 
-# Load a custom chat handler if enabled and exists, otherwise define a dummy.
+# Load a custom chat handler if enabled and exists
 chat_module = None
 if commandArgs.custom_chat:
-    if (sys.version_info > (3, 0)):
-        try:
-        	  chat_module = importlib.import_module('chat_custom')
-        except ImportError:
-        	  print("unable to load chat_custom.py")
-    else:
-        try:
+    if os.path.exists('chat_custom.py'):
+        if (sys.version_info > (3, 0)):
+            chat_module = importlib.import_module('chat_custom')
+        else:
             chat_module = __import__('chat_custom', fromlist=['chat_custom'])
-        except ImportError:
-            print("unable to load chat_custom.py")
-    if chat_module != None:
+
         chat_module.setup(robot_config, handle_chat_message)
+    
+    else:
+       print("Unable to find chat_custom.py")
 
 #load the extended chat commands
 if ext_chat:
