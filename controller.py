@@ -81,61 +81,45 @@ infoServer = commandArgs.info_server
 debug_messages = commandArgs.debug_messages
 ext_chat = commandArgs.ext_chat_command
 no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
-enable_async = robot_config.getboolean('misc, 'enable_async')
-
+enable_async = robot_config.getboolean('misc', 'enable_async')
+auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
+secret_key = robot_config.get('misc', 'secret_key')
 
 if debug_messages:
     print(commandArgs)
 
-# TODO : This really doesn't belong here, should probably be in start script.
-# watch dog timer
-if robot_config.getboolean('misc', 'watchdog'):
-    import os
-    os.system("sudo modprobe bcm2835_wdt")
-    os.system("sudo /usr/sbin/service watchdog start")
+# Functions
 
-if debug_messages:
-    print("info server:", infoServer)
+# TODO impliment a exclusive control function in hardware / tts / chat custom.
+# this will probably mean a dummy function in all the handlers.
+def handle_exclusive_control(args):
+        if 'status' in args and 'robot_id' in args and args['robot_id'] == robotID:
 
-# Load and start TTS
-import tts.tts as tts
-tts.setup(robot_config)
-global drivingSpeed
+            status = args['status']
 
-# If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
-# controller for the specified hardware type.
-if commandArgs.custom_hardware:
-    if (sys.version_info > (3, 0)):
-        try:
-        	  module = importlib.import_module('hardware.hardware_custom')
-        except ImportError:
-        	  print("unable to load hardware/hardware_custom.py")
-        	  module = importlib.import_module('hardware.'+commandArgs.type)
-    else:
-        try:
-            module = __import__('hardware.hardware_custom', fromlist=['hardware_custom'])
-        except ImportError:
-            print("unable to load hardware/hardware_custom.py")
-            module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
-else:    
-    if (sys.version_info > (3, 0)):
-    	  module = importlib.import_module('hardware.'+commandArgs.type)
-    else:
-        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+        if status == 'start':
+                print("start exclusive control")
+        if status == 'end':
+                print("end exclusive control")
+                
+                
+def handle_chat_message(args):
+    print("chat message received:", args)
 
-#call the hardware module setup function
-module.setup(robot_config)
-move_handler = module.move
+    if ext_chat:
+        extended_command.handler(args)
+            
+    rawMessage = args['message']
+    withoutName = rawMessage.split(']')[1:]
+    message = "".join(withoutName)
 
-#load the extended chat commands
-if ext_chat:
-    import extended_command
-    extended_command.setup(robot_config)
-    extended_command.move_handler=move_handler
-    move_handler = extended_command.move_auth
-
-# TODO Add the custom chat handler loader
-# Load a custom chat handler if enabled and exists, otherwise define a dummy.
+    try:
+        if message[1] == ".":
+            exit()
+        else:
+            tts.say(message, args)
+    except IndexError:
+        exit()
 
 def isInternetConnected():
     try:
@@ -193,37 +177,6 @@ def configWifiLogin(secretKey):
 #straightDelay = commandArgs.straight_delay 
 #turnDelay = commandArgs.turn_delay
 
-
-# TODO impliment a exclusive control function in hardware / tts / chat custom.
-# this will probably mean a dummy function in all the handlers.
-def handle_exclusive_control(args):
-        if 'status' in args and 'robot_id' in args and args['robot_id'] == robotID:
-
-            status = args['status']
-
-        if status == 'start':
-                print("start exclusive control")
-        if status == 'end':
-                print("end exclusive control")
-                
-                
-def handle_chat_message(args):
-    print("chat message received:", args)
-
-    if ext_chat:
-        extended_command.handler(args)
-            
-    rawMessage = args['message']
-    withoutName = rawMessage.split(']')[1:]
-    message = "".join(withoutName)
-
-    try:
-        if message[1] == ".":
-            exit()
-        else:
-            tts.say(message, args)
-    except IndexError:
-        exit()
             
 # TODO changeVolumeHighThenNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
@@ -235,8 +188,7 @@ def changeVolumeHighThenNormal():
 def handleLoudCommand(seconds):
     thread.start_new_thread(changeVolumeHighThenNormal, (seconds,))
 
-handlingCommand = False
-    
+handlingCommand = False    
 def handle_command(args):
         global handlingCommand
         handlingCommand = True
@@ -277,7 +229,94 @@ def on_handle_exclusive_control(*args):
    thread.start_new_thread(handle_exclusive_control, args)
 
 def on_handle_chat_message(*args):
-   thread.start_new_thread(handle_chat_message, args)
+   if chat_module == None:
+       thread.start_new_thread(handle_chat_message, args)
+   else:
+       thread.start_new_thread(chat_module.handle_chat, args)
+
+# if auto_wifi is enabled, schdule a task for it.
+def auto_wifi_task():
+    if secret_key is not None:
+         configWifiLogin(secret_key)
+    t = Timer(10, auto_wifi_task)
+    t.daemon = True
+    t.start()
+
+lastInternetStatus = False
+def internetStatus_task():
+    global lastInternetStatus
+    internetStatus = isInternetConnected()
+    if internetStatus != lastInternetStatus:
+        if internetStatus:
+            tts.say("ok")
+        else:
+            tts.say("missing internet connection")
+    lastInternetStatus = internetStatus
+
+
+# TODO : This really doesn't belong here, should probably be in start script.
+# watch dog timer
+if robot_config.getboolean('misc', 'watchdog'):
+    import os
+    os.system("sudo modprobe bcm2835_wdt")
+    os.system("sudo /usr/sbin/service watchdog start")
+
+if debug_messages:
+    print("info server:", infoServer)
+
+# Load and start TTS
+import tts.tts as tts
+tts.setup(robot_config)
+global drivingSpeed
+
+# If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
+# controller for the specified hardware type.
+if commandArgs.custom_hardware:
+    if (sys.version_info > (3, 0)):
+        try:
+        	  module = importlib.import_module('hardware.hardware_custom')
+        except ImportError:
+        	  print("unable to load hardware/hardware_custom.py")
+        	  module = importlib.import_module('hardware.'+commandArgs.type)
+    else:
+        try:
+            module = __import__('hardware.hardware_custom', fromlist=['hardware_custom'])
+        except ImportError:
+            print("unable to load hardware/hardware_custom.py")
+            module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+else:    
+    if (sys.version_info > (3, 0)):
+    	  module = importlib.import_module('hardware.'+commandArgs.type)
+    else:
+        module = __import__("hardware."+commandArgs.type, fromlist=[commandArgs.type])
+
+#call the hardware module setup function
+module.setup(robot_config)
+move_handler = module.move
+
+# Load a custom chat handler if enabled and exists, otherwise define a dummy.
+chat_module = None
+if commandArgs.custom_chat:
+    if (sys.version_info > (3, 0)):
+        try:
+        	  chat_module = importlib.import_module('chat_custom')
+        except ImportError:
+        	  print("unable to load chat_custom.py")
+    else:
+        try:
+            chat_module = __import__('chat_custom', fromlist=['chat_custom'])
+        except ImportError:
+            print("unable to load chat_custom.py")
+    if chat_module != None:
+        chat_module.setup(robot_config, handle_chat_message)
+
+#load the extended chat commands
+if ext_chat:
+    import extended_command
+    extended_command.setup(robot_config)
+    extended_command.move_handler=move_handler
+    move_handler = extended_command.move_auth
+
 
 # Connect to the networking sockets
 networking.setupSocketIO(robot_config)
@@ -289,35 +328,13 @@ appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
 if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
     import reverse_ssh
     setupReverseSsh(robot_config)
-
-slow_for_low_battery = robot_config.getboolean('misc', 'slow_for_low_battery')
-auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
-secret_key = robot_config.get('misc', 'secret_key')
-
-# if auto_wifi is enabled, schdule a task for it.
-def auto_wifi_task():
-    if secret_key is not None:
-         configWifiLogin(secret_key)
-    t = Timer(10, auto_wifi_task)
-    t.daemon = True
-    t.start()
     
+# add auto wifi task
 if auto_wifi:
     auto_wifi_task()
 
 
-lastInternetStatus = False
 #schedule a task to check internet status
-def internetStatus_task():
-    global lastInternetStatus
-    internetStatus = isInternetConnected()
-    if internetStatus != lastInternetStatus:
-        if internetStatus:
-            tts.say("ok")
-        else:
-            tts.say("missing internet connection")
-    lastInternetStatus = internetStatus
-
 schedule.repeat_task(120, internetStatus_task)
 
 while True:
