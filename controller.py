@@ -6,12 +6,10 @@ from __future__ import print_function
 # TODO make charge reporting more modular
 # TODO full python3 support will involve installing the adafruit drivers, not using the ones from the repo
 
-import platform
 import traceback
 import argparse
 import telly
 import robot_util
-import subprocess
 import os.path
 import networking
 import time
@@ -89,12 +87,6 @@ no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
 
 if debug_messages:
     print(commandArgs)
-
-# Charging stuff
-chargeValue = robot_config.getfloat('misc', 'chargeValue')
-secondsToCharge = 60.0 * 60.0 * robot_config.getfloat('misc', 'charge_hours')
-secondsToDischarge = 60.0 * 60.0 * robot_config.getfloat('misc', 'discharge_hours')
-chargeIONumber = robot_config.getint('misc', 'chargeIONumber')
 
 # TODO : This really doesn't belong here, should probably be in start script.
 # watch dog timer
@@ -308,55 +300,6 @@ if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_confi
     import reverse_ssh
     setupReverseSsh(robot_config)
 
-
-def ipInfoUpdate():
-    appServerSocketIO.emit('ip_information',
-                  {'ip': subprocess.check_output(["hostname", "-I"]).decode('utf-8'), 'robot_id': robotID})
-
-
-# true if it's on the charger and it needs to be charging
-def isCharging():
-    print("is charging current value", chargeValue)
-
-    # only tested for motor hat robot currently, so only runs with that type
-    if commandArgs.type == "motor_hat":
-        print("RPi.GPIO is in sys.modules")
-        if chargeValue < 99: # if it's not full charged already
-            print("charge value is low")
-            return GPIO.input(chargeIONumber) == 1 # return whether it's connected to the dock
-
-    return False
-    
-def sendChargeState():
-    charging = isCharging()
-    chargeState = {'robot_id': robotID, 'charging': charging}
-    appServerSocketIO.emit('charge_state', chargeState)
-    print("charge state:", chargeState)
-
-def sendChargeStateCallback(x):
-    sendChargeState()
-
-if commandArgs.type == 'motor_hat':
-    GPIO.add_event_detect(chargeIONumber, GPIO.BOTH)
-    GPIO.add_event_callback(chargeIONumber, sendChargeStateCallback)
-
-def identifyRobotId():
-    if not no_chat_server:
-        chatSocket.emit('identify_robot_id', robotID);
-    appServerSocketIO.emit('identify_robot_id', robotID);
-    
-waitCounter = 1
-
-identifyRobotId()
-
-if platform.system() == 'Darwin':
-    pass
-    #ipInfoUpdate()
-elif platform.system() == 'Linux':
-    ipInfoUpdate()
-
-lastInternetStatus = False
-
 slow_for_low_battery = robot_config.getboolean('misc', 'slow_for_low_battery')
 auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
 secret_key = robot_config.get('misc', 'secret_key')
@@ -372,9 +315,9 @@ def auto_wifi_task():
 if auto_wifi:
     auto_wifi_task()
 
-lastInternetStatus=None
-#schedule a task to check internet status
 
+lastInternetStatus = False
+#schedule a task to check internet status
 def internetStatus_task():
     global lastInternetStatus
     internetStatus = isInternetConnected()
@@ -386,42 +329,6 @@ def internetStatus_task():
     lastInternetStatus = internetStatus
 
 schedule.repeat_task(120, internetStatus_task)
-
-#schedule a task to tell the server our robot it.
-def identifyRobot_task():
-    # tell the server what robot id is using this connection
-    identifyRobotId()
-    
-    if platform.system() == 'Linux':
-        ipInfoUpdate()
-    
-schedule.task(60, identifyRobot_task)
-
-#schedule a task to report charge status to the server
-chargeCheckInterval = int(robot_config.getint('misc', 'chargeCheckInterval'))
-def sendChargeState_task():
-    if commandArgs.type == 'motor_hat':
-        chargeValue = module.updateChargeApproximation()
-        sendChargeState()
-        if slow_for_low_battery:
-            module.setSpeedBasedOnCharge(chargeValue)
-
-schedule.task(chargeCheckInterval, sendChargeState_task)
-
-#schedule tasks to tts out a message about battery percentage and need to charge
-def reportBatteryStatus_task():
-    if chargeValue < 30:
-        tts.say("battery low, %d percent" % int(chargeValue))
-
-
-def reportNeedToCharge():
-    if not isCharging():
-        if chargeValue <= 25:
-            tts.say("need to charge")
-
-if ((robot_config.get('tts', 'type') != 'none') and (slow_for_low_battery)):
-    schedule.repeat_task(60, reportBatteryStatus_task)
-    schedule.repeat_task(17, reportNeedToCharge)
 
 while True:
     time.sleep(10)

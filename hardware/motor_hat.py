@@ -5,6 +5,8 @@ import os
 import getpass
 import random
 import atexit
+import networking
+import tts.tts as tts
 
 try:
     from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
@@ -26,12 +28,18 @@ turningSpeedActuallyUsed = None
 dayTimeDrivingSpeedActuallyUsed = None
 nightTimeDrivingSpeedActuallyUsed = None
 drivingSpeed = 0
+chargeValue = 100
+
+secondsToCharge = None
+secondsToDischarge = None
+chargeIONumber = None
+
 
 servoMin = [150, 150, 130]  # Min pulse length out of 4096
 servoMax = [600, 600, 270]  # Max pulse length out of 4096
 armServo = [300, 300, 300]
 
-def setSpeedBasedOnCharge(chargeValue)
+def setSpeedBasedOnCharge(chargeValue):
     global dayTimeDrivingSpeedActuallyUsed
     global nightTimeDrivingSpeedActuallyUsed
 
@@ -86,6 +94,46 @@ def updateChargeApproximation():
     print("charge value updated to", chargeValue)
     return chargeValue
 
+# true if it's on the charger and it needs to be charging
+def isCharging():
+    print("is charging current value", chargeValue)
+
+    # only tested for motor hat robot currently, so only runs with that type
+    if commandArgs.type == "motor_hat":
+        print("RPi.GPIO is in sys.modules")
+        if chargeValue < 99: # if it's not full charged already
+            print("charge value is low")
+            return GPIO.input(chargeIONumber) == 1 # return whether it's connected to the dock
+
+    return False
+    
+def sendChargeState():
+    networking.sendChargeState(isCharging())
+
+def sendChargeStateCallback(x):
+    sendChargeState()
+
+#schedule a task to report charge status to the server
+def sendChargeState_task():
+    if commandArgs.type == 'motor_hat':
+        chargeValue = updateChargeApproximation()
+        sendChargeState()
+        if slow_for_low_battery:
+            setSpeedBasedOnCharge(chargeValue)
+
+
+#schedule tasks to tts out a message about battery percentage and need to charge
+def reportBatteryStatus_task():
+    if chargeValue < 30:
+        tts.say("battery low, %d percent" % int(chargeValue))
+
+
+def reportNeedToCharge():
+    if not isCharging():
+        if chargeValue <= 25:
+            tts.say("need to charge")
+
+
 def turnOffMotors():
     mh.getMotor(1).run(Adafruit_MotorHAT.RELEASE)
     mh.getMotor(2).run(Adafruit_MotorHAT.RELEASE)
@@ -128,9 +176,16 @@ def setup(robot_config):
     global turningSpeedActuallyUsed
     global dayTimeDrivingSpeedActuallyUsed
     global nightTimeDrivingSpeedActuallyUsed
-    
+    global secondsToCharge
+    global secondsToDischarge
+    global chargeIONumber
+
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(chargeIONumber, GPIO.IN)
+
+    secondsToCharge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'charge_hours')
+    secondsToDischarge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'discharge_hours')
+    chargeIONumber = robot_config.getint('motor_hat', 'chargeIONumber')
 
     if motorsEnabled:
         # create a default object, no changes to I2C address or frequency
@@ -147,6 +202,17 @@ def setup(robot_config):
     turningSpeedActuallyUsed = robot_config.getint('motor_hat', 'turning_speed')
     dayTimeDrivingSpeedActuallyUsed = robot_config.getint('misc', 'day_speed')
     nightTimeDrivingSpeedActuallyUsed = robot_config.getint('misc', 'night_speed')
+
+    if robot_config.getboolean('motor_hat', 'slow_for_low_battery'):
+        GPIO.add_event_detect(chargeIONumber, GPIO.BOTH)
+        GPIO.add_event_callback(chargeIONumber, sendChargeStateCallback)
+        chargeCheckInterval = int(robot_config.getint('motor_hat', 'chargeCheckInterval'))
+    
+        if (robot_config.get('tts', 'type') != 'none'):
+            schedule.repeat_task(60, reportBatteryStatus_task)
+            schedule.repeat_task(17, reportNeedToCharge)
+            schedule.task(chargeCheckInterval, sendChargeState_task)
+        
 
 
 def move( args ):

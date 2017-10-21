@@ -189,12 +189,12 @@ def handler(args):
 # [1:]
     command = command.split(' ')
     if command != None:
-#        try:
+        try:
             if command[1] in commands:
                 commands[command[1]](command, args)
-#        except:
-#            print("Exception in extended command handler")
-#            pass                
+        except:
+            print("Exception in extended command handler")
+            pass                
 
 # This function checks the user sending the command, and if authorized
 # call the move handler.

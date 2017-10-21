@@ -22,8 +22,8 @@ def setup(robot_config):
     global rotatetimes
     
     debug_messages = robot_config.get('misc', 'debug_messages')
-    sleeptime = robot_config.getfloat('misc', 'sleeptime')
-    rotatetimes = robot_config.getfloat('misc', 'rotatetimes')
+    sleeptime = robot_config.getfloat('l298n', 'sleeptime')
+    rotatetimes = robot_config.getfloat('l298n', 'rotatetimes')
     
     if debug_messages:
         mode=GPIO.getmode()

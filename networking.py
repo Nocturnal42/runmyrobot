@@ -3,6 +3,9 @@ from __future__ import print_function
 import sys
 import robot_util
 import json
+import schedule
+import platform
+import subprocess
 
 from socketIO_client import SocketIO, LoggingNamespace
 
@@ -73,6 +76,9 @@ def setupSocketIO(robot_config):
     
     controlHostPort = getControlHostPort()
     chatHostPort = getChatHostPort()
+
+    schedule.single_task(10, identifyRobot_task)
+    schedule.repeat_task(60, identifyRobot_task)
     
     if debug_messages:   
         print("using socket io to connect to control", controlHostPort)
@@ -109,4 +115,27 @@ def setupAppSocket(on_handle_exclusive_control):
     appServerSocketIO.on('exclusive_control', on_handle_exclusive_control)
     return appServerSocketIO
 
+def sendChargeState(charging):
+    chargeState = {'robot_id': robot_id, 'charging': charging}
+    appServerSocketIO.emit('charge_state', chargeState)
+    print("charge state:", chargeState)
+
+
+def ipInfoUpdate():
+    appServerSocketIO.emit('ip_information',
+                  {'ip': subprocess.check_output(["hostname", "-I"]).decode('utf-8'), 'robot_id': robot_id})
+
+def identifyRobotId():
+    if not no_chat_server:
+        chatSocket.emit('identify_robot_id', robot_id);
+    appServerSocketIO.emit('identify_robot_id', robot_id);
     
+#schedule a task to tell the server our robot it.
+def identifyRobot_task():
+    # tell the server what robot id is using this connection
+    identifyRobotId()
+    
+    if platform.system() == 'Linux':
+        ipInfoUpdate()
+    
+
