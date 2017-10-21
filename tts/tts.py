@@ -69,7 +69,6 @@ def say(*args):
         if len(args) == 1:
             tts_module.say(message)
         else:
-            print args[1]
             if mute_anon and args[1]['anonymous'] == True:
                 exit()
             if url_filter:
