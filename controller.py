@@ -15,10 +15,8 @@ import sys
 
 if (sys.version_info > (3, 0)):
     import importlib
-    import urllib.request as urllib2
     import _thread as thread
 else:
-    import urllib2
     import thread
  
 from threading import Timer
@@ -120,13 +118,6 @@ def handle_chat_message(args):
             tts.say(message, args)
     except IndexError:
         exit()
-
-def isInternetConnected():
-    try:
-        urllib2.urlopen('https://www.google.com', timeout=1)
-        return True
-    except urllib2.URLError as err:
-        return False
     
 def configWifiLogin(secretKey):
     WPA_FILE_TEMPLATE = robot_config.get('misc', 'wpa_template')
@@ -202,6 +193,7 @@ def handle_command(args):
 
 
 # TODO WALL and LOUD don't belong here, should be in custom handler.
+            command = args['command']
             if command in ("SOUND2", "WALL", "LOUD"):
                 handlingCommand = False
             
@@ -241,17 +233,6 @@ def auto_wifi_task():
     t = Timer(10, auto_wifi_task)
     t.daemon = True
     t.start()
-
-lastInternetStatus = False
-def internetStatus_task():
-    global lastInternetStatus
-    internetStatus = isInternetConnected()
-    if internetStatus != lastInternetStatus:
-        if internetStatus:
-            tts.say("ok")
-        else:
-            tts.say("missing internet connection")
-    lastInternetStatus = internetStatus
 
 
 # TODO : This really doesn't belong here, should probably be in start script.
@@ -306,7 +287,6 @@ if commandArgs.custom_chat:
     
     else:
        print("Unable to find chat_custom.py")
-    chat_module.setup(robot_config, handle_chat_message)
 
 #load the extended chat commands
 if ext_chat:
@@ -330,10 +310,6 @@ if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_confi
 # add auto wifi task
 if auto_wifi:
     auto_wifi_task()
-
-
-#schedule a task to check internet status
-schedule.repeat_task(30, internetStatus_task)
 
 while True:
     time.sleep(10)

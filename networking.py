@@ -6,14 +6,16 @@ import json
 import schedule
 import platform
 import subprocess
+import tts.tts as tts
 
 from socketIO_client import SocketIO, LoggingNamespace
 
 if (sys.version_info > (3, 0)):
     import _thread as thread
+    import urllib.request as urllib2
 else:
     import thread
-
+    import urllib2
 
 controlHostPort = None
 chatHostPort = None
@@ -77,12 +79,16 @@ def setupSocketIO(robot_config):
     controlHostPort = getControlHostPort()
     chatHostPort = getChatHostPort()
 
-    schedule.single_task(10, identifyRobot_task)
     schedule.repeat_task(60, identifyRobot_task)
     
     if debug_messages:   
         print("using socket io to connect to control", controlHostPort)
         print("using socket io to connect to chat", chatHostPort)
+
+    if robot_config.getboolean('misc', 'check_internet'):
+        #schedule a task to check internet status
+        schedule.task(robot_config.getint('misc', 'check_freq'), internetStatus_task)
+
 
 def setupControlSocket(on_handle_command):
     global controlSocketIO
@@ -113,6 +119,7 @@ def setupAppSocket(on_handle_exclusive_control):
     print("finished connecting to app server")
     startListenForAppServer()
     appServerSocketIO.on('exclusive_control', on_handle_exclusive_control)
+    identifyRobotId()
     return appServerSocketIO
 
 def sendChargeState(charging):
@@ -138,4 +145,21 @@ def identifyRobot_task():
     if platform.system() == 'Linux':
         ipInfoUpdate()
     
+def isInternetConnected():
+    try:
+        urllib2.urlopen('https://www.google.com', timeout=1)
+        return True
+    except urllib2.URLError as err:
+        return False
+
+lastInternetStatus = False
+def internetStatus_task():
+    global lastInternetStatus
+    internetStatus = isInternetConnected()
+    if internetStatus != lastInternetStatus:
+        if internetStatus:
+            tts.say("ok")
+        else:
+            tts.say("missing internet connection")
+    lastInternetStatus = internetStatus
 

@@ -109,6 +109,8 @@ def devmode_handler(command, args):
             elif command[2] == 'mods':
                 dev_mode = True
                 dev_mode_mods = True
+    print("dev_mode : " + dev_mode)
+    print("dev_mode_mods : " + dev_mode_mods)
 
 def anon_handler(command, args):
     global anon_control
@@ -132,6 +134,7 @@ def anon_handler(command, args):
                         tts.unmute_anon_tts()
                     elif command[3] == 'off':
                         tts.mute_anon_tts()
+    print("anon_control : " + anon_control)
 
 def tts_handler(command, args):
     print("tts :", tts)

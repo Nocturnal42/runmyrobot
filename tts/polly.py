@@ -56,6 +56,7 @@ def setup(robot_config):
         
 def say(*args):
     message = args[0]
+
     if (len(args) == 1): # simple say
         response = polly.synthesize_speech(
             OutputFormat = 'mp3',
