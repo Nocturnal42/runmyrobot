@@ -29,7 +29,6 @@ except ImportError:
     print("Missing configparser module (python -m pip install configparser)")
     sys.exit()
 
-
 try: 
     robot_config.readfp(open('letsrobot.conf'))
 except IOError:
@@ -52,6 +51,10 @@ def str2bool(v):
 # TODO assess these and other options in the config to see which ones are most 
 # appropriate to be overidden from the command line.
 # check the command line for and config file overrides.
+
+
+
+
 parser = argparse.ArgumentParser(description='start robot control program')
 parser.add_argument('--robot-id', help='Robot ID', default=robot_config.get('robot', 'robot_id'))
 parser.add_argument('--info-server', help="Server that robot will connect to for information about servers and things", default=robot_config.get('misc', 'info_server'))
@@ -60,6 +63,7 @@ parser.add_argument('--custom-hardware', type=str2bool, default=robot_config.get
 parser.add_argument('--custom-tts', type=str2bool, default=robot_config.getboolean('misc', 'custom_tts'))
 parser.add_argument('--custom-chat', type=str2bool, default=robot_config.getboolean('misc', 'custom_chat'))
 parser.add_argument('--ext-chat-command', type=str2bool, default=robot_config.getboolean('tts', 'ext_chat'))
+parser.add_argument('--secure-cert', type=str2bool, default=robot_config.getboolean('misc', 'secure_cert'))
 parser.add_argument('--debug-messages', type=str2bool, default=robot_config.getboolean('misc', 'debug_messages'))
 commandArgs = parser.parse_args()
 
@@ -71,6 +75,7 @@ robot_config.set('misc', 'custom_hardware', str(commandArgs.custom_hardware))
 robot_config.set('misc', 'custom_tts', str(commandArgs.custom_tts))
 robot_config.set('misc', 'custom_chat', str(commandArgs.custom_chat))
 robot_config.set('tts', 'ext_chat', str(commandArgs.ext_chat_command))
+robot_config.set('misc', 'secure_cert', str(commandArgs.secure_cert))
 robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
 
 # set variables pulled from the config
