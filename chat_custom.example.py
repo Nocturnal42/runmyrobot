@@ -11,6 +11,8 @@ def reboot(*args):
     exit()  
 
 def setup(robot_config, chat_handler):
+    global main_chat_handler
+    
     # Any chat related setup code goes here
 
 

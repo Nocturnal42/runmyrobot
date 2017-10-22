@@ -54,26 +54,24 @@ def setup(robot_config):
         import extended_command
         extended_command.add_command('.new_voice', new_voice)
         
-def say(message, *args):
-    if (len(args) == 0): # simple say
+def say(*args):
+    message = args[0]
+    if (len(args) == 1): # simple say
         response = polly.synthesize_speech(
             OutputFormat = 'mp3',
             VoiceId = robot_voice,
             Text = message,
         )
+        print("Say : " + message)
     else:
-        user = args[0]['name']
+        user = args[1]['name']
 
-        if (args[0]['anonymous'] == True):
+        if (args[1]['anonymous'] == True):
             voice = 'Mizuki'
         else:
             if user not in users:
                 users[user] = random.choice(voices)
             voice = users[user]    
-    
-        rawMessage = args[0]['message']
-        withoutName = rawMessage.split(']')[1:]
-        message = "".join(withoutName)
 
         print(user + " voice " + voice + ": " + message)
     

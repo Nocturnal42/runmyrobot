@@ -306,6 +306,7 @@ if commandArgs.custom_chat:
     
     else:
        print("Unable to find chat_custom.py")
+    chat_module.setup(robot_config, handle_chat_message)
 
 #load the extended chat commands
 if ext_chat:
@@ -332,7 +333,7 @@ if auto_wifi:
 
 
 #schedule a task to check internet status
-schedule.repeat_task(120, internetStatus_task)
+schedule.repeat_task(30, internetStatus_task)
 
 while True:
     time.sleep(10)

@@ -65,6 +65,7 @@ import tts.tts as tts
 move_handler = None
 mods=[]
 dev_mode = None
+dev_mode_mods = False
 anon_control = None
 owner = None
 v4l2_ctl = None
@@ -199,8 +200,8 @@ def handler(args):
 # This function checks the user sending the command, and if authorized
 # call the move handler.
 def move_auth(args):
-    user = args['name']
-    anon = args['anonymous']
+    user = args['user']['username']
+    anon = args['user']['anonymous']
     
     if anon_control == False and anon:
         exit()
