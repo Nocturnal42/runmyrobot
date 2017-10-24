@@ -30,9 +30,9 @@ def move(args):
 ```
 ### setup() function
 
-The ```setup()``` function is passed the ConfigParser object for the letsrobot.conf file. You can create a new section for you hardware in the letsrobot.conf file, and store configuration variables there. Variables in the configuration can be accessed with ```robot_config.get(section, option)```, ```robot_config.getint(section, option)``` and ```robot_config.getboolean(section, option)```.
+The ```setup()``` function is passed the ConfigParser object for the letsrobot.conf file. You can create a new section for your hardware in the letsrobot.conf file, and store configuration variables there. Variables in the configuration can be accessed with ```robot_config.get(section, option)```, ```robot_config.getint(section, option)``` and ```robot_config.getboolean(section, option)```.
 
-Any initial hardware setup should happen when the setup function is called. This function is only called once.
+Any initial hardware setup should happen when the ```setup()``` function is called. This function is only called once.
 
 ### move() function
 The ```move()``` function is passed the object containing the command for the robot received from the server. 
@@ -40,7 +40,7 @@ The ```move()``` function is passed the object containing the command for the ro
 ```
 {u'robot_id': u'49345483', u'command': u'F', u'user': {u'username': u'Nocturnal', u'anonymous': False}, u'key_position': u'down'}
 ```
-It should be mostly self explainitory, The most important part is the ```'command'```. The ```move()``` should use the provided command to determine how to move robot. If your hardware needs a specific start and stop instructions to move, with a pause between, you should import the ```time``` module and use it's ```sleep()``` function.
+It should be mostly self explainitory, The most important part is the ```'command'```. The ```move()``` function should use the provided command to determine how to move robot. If your hardware needs a specific start and stop instructions to move, with a pause between, you should import the ```time``` module and use it's ```sleep()``` function.
 
 ```python
     GPIO.output(StepPinForward, GPIO.HIGH)
@@ -48,7 +48,7 @@ It should be mostly self explainitory, The most important part is the ```'comman
     GPIO.output(StepPinForward, GPIO.LOW)
 ```
 
-The controller with block, and ignore any other commands from the server until the ```move()``` function finishes. If you want to impliment your own blocking, or impliment proper asynchronous movement commands, you can disable the blocking by setting ```enable_async=True``` in the misc
+The controller will block, and ignore any other commands from the server until the ```move()``` function finishes. If you want to impliment your own blocking, or impliment proper asynchronous movement commands, you can disable the blocking by setting ```enable_async=True``` in the misc
 section of letsrobot.conf
 
 ## Adding New TTS Support
@@ -73,15 +73,15 @@ def say(*args):
 
 ### setup() function
 
-The ```setup()``` function is passed the ConfigParser object for the letsrobot.conf file. You can create a new section for you tts in the letsrobot.conf file, and store configuration variables there. Variables in the configuration can be accessed with ```robot_config.get(section, option)```, ```robot_config.getint(section, option)``` and ```robot_config.getboolean(section, option)```.
+The ```setup()``` function is passed the ConfigParser object for the letsrobot.conf file. You can create a new section for your tts in the letsrobot.conf file, and store configuration variables there. Variables in the configuration can be accessed with ```robot_config.get(section, option)```, ```robot_config.getint(section, option)``` and ```robot_config.getboolean(section, option)```.
 
-Any initial tts setup should happen when the setup function is called. This function is only called once.
+Any initial tts setup should happen when the ```setup()``` function is called. This function is only called once.
 
 ### say() function
 
-The ```say()``` function is called in one of two ways. There is a simple say called like so ```tts.say('The internet is not connected')```. This is used both other modules and parts of the controller to report things to the owner. There is also ```tts.say(message, args)```, this is how chat messages are passed. It's up to you if you want to handle them the same or differently.
+The ```say()``` function is called in one of two ways. There is a simple say called like so ```tts.say('The internet is not connected')```. This is used by other modules and parts of the controller to report things to the owner. There is also ```tts.say(message, args)```, this is how chat messages are passed. It's up to you if you want to handle them the same or differently.
 
-The first arguement will always be the plain text message. The second arguement, if it exists, will be the chat message object that was sent to the robot from the server. It looks like this.
+The first argument will always be the plain text message. The second argument, if it exists, will be the chat message object that was sent to the robot from the server. It looks like this.
 
 ```
 {u'non_global': True, u'name': u'Nocturnal', u'username_color': u'#F16B74', u'robot_id': u'49345483', u'message': u'[huNGRycat] This is a chat message', u'_id': u'59ec950fb70002183b2c4e22', u'anonymous': False, u'room': u'Nocturnal'}
@@ -126,11 +126,11 @@ def move(args):
 
 ```
 
-This example add a hypothetical ```FLIP``` instruction for your robot, to the existing hardware controller.
+This example adds a hypothetical ```FLIP``` instruction for your robot, to the existing hardware controller.
 
 The ```setup()``` function includes code to import the hardware controller you are extending into `module`. It also calls the setup function for that module.
 
-The ```move()``` have a command interpeter similar to the one in hardware module you are extending, except this one
+The ```move()``` function has a command interpeter similar to the one in hardware module you are extending, except this one
 only needs to contain the commands that aren't handled in the hardware module. After the custom command interpreter has run, it should call the ```move()``` command from the hardware module, to handle the non custom commands.
 
 
@@ -142,7 +142,7 @@ module = importlib.import_module('hardware.'+type)
 
 ## Extending Existing TTS
 
-This is very similar to extending existing hardware as outlined above. Except that where extending hardware involes add new functions, extending TTS is more about modifying the way messages are handled.
+This is very similar to extending existing hardware as outlined above. Except that where extending hardware involes adding new functions, extending TTS is more about modifying the way messages are handled.
 
 When the ```custom_tts``` option in the ```misc``` section of letsrobot.conf is set to true, the controller will look for a file named ```tts_custom.py``` in the tts directory. If that file exists it will load that instead of the file relating to the tts type specified in letsrobot.conf.
 
@@ -193,7 +193,7 @@ module = importlib.import_module('tts.'+type)
 
 ## Extending Chat Handling
 
-This is similar to extending TTS, and many things could be done in either. The difference between the two, is that extending the chat handler, inserts the code before the chat handler (and extended command handler) is run. While extending TTS puts the code inside the chat handler. In theory you could use this to replace the chat handler, extended command handler and TTS system with something entirely your own.
+This is similar to extending TTS, and many things could be done in either. The difference between the two, is that extending the chat handler, inserts the code before the chat handler (and the extended command handler) is run. While extending TTS puts the code inside the chat handler. In theory you could use this to replace the chat handler, extended command handler and TTS system with something entirely your own.
 
 Simple say messages are not seen by the chat handler.
 
@@ -226,23 +226,24 @@ This example will block anonymous users from attempting to access any of the ext
 
 ### setup() function
 
+The ```setup()``` function takes two arguments. The robot_config object containing the details of the letsrobot.conf files, and a function object for the controllers chat handler function. In order to allow this function to be called later in the ```handle_chat()``` function, it should be stored in a global variable.
 
 ### handle_chat() Function
 
-The ```handle_chat()``` function takes one argument. The chat message object passed to the controller for the robot by the server. This is the same object that is passed as the optional second arguement to the tts ```say()``` function.
+The ```handle_chat()``` function takes one argument. The chat message object passed to the controller for the robot by the server. This is the same object that is passed as the optional second argument to the tts ```say()``` function.
 
 ```
 {u'non_global': True, u'name': u'Nocturnal', u'username_color': u'#F16B74', u'robot_id': u'49345483', u'message': u'[huNGRycat] This is a chat message', u'_id': u'59ec950fb70002183b2c4e22', u'anonymous': False, u'room': u'Nocturnal'}
 ```
 
-Once the function has examined or modified the object, it should pass it off the main chat handler (or not, if you decide to drop the message entirely).
+Once the function has examined or modified the object, it should pass it off to the main chat handler (or not, if you decide to drop the message entirely).
 
 ## chat_custom.example.py
 
-This example shows how to use the ```extended_command``` module to add an addition ```.reboot``` command to reboot the controller. This is not exclusice to chat_custom, it can be done anywhere. 
+This example shows how to use the ```extended_command``` module to add an additional ```.reboot``` command, to reboot the controller. This is not exclusive to chat_custom, it can be done anywhere. 
 
-It also shows how to use replace all mentions of 'john madden' in chat with 'the antichrist' for tts. This could also be done in tts_custom.
-
+It also shows how to replace all mentions of 'john madden' in chat with 'the antichrist' for tts. This could also be done in tts_custom.
+r
 ## tts_custom.example.py
 
 This example shows how to play a custom sound file for specific users, before their tts chat message is played.
@@ -250,4 +251,3 @@ This example shows how to play a custom sound file for specific users, before th
 ## hardware_custom.example.py
 
 This example shows how to add max7219 led support to your chosen hardware controller. 
-
