@@ -83,45 +83,6 @@ def SetLED_Med():
 def SetLED_Full():
     # brightness MAX
     spi.writebytes([0x0a])
-    spi.writebytes([0x0F])        
-
-def SetLED_On():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDOn[i]])
-
-def SetLED_Off():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDOff[i]])
-
-def SetLED_E_Smiley():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDEmoteSmile[i]]) 
-
-def SetLED_E_Sad():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDEmoteSad[i]])
-
-def SetLED_E_Tongue():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDEmoteTongue[i]])
-
-def SetLED_E_Suprised():
-    for i in range(len(columns)):
-        spi.xfer([columns[i],LEDEmoteSuprise[i]])
-
-def SetLED_Low():
-    # brightness MIN
-    spi.writebytes([0x0a])
-    spi.writebytes([0x00])
-
-def SetLED_Med():
-    #brightness MED
-    spi.writebytes([0x0a])
-    spi.writebytes([0x06])
-
-def SetLED_Full():
-    # brightness MAX
-    spi.writebytes([0x0a])
     spi.writebytes([0x0F])
         
 def move(args):

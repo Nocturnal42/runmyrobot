@@ -4,28 +4,36 @@ import networking
 import tts.tts as tts
 
 # TODO 
-
-# Pull list of moderators
-
-
 # If I pull the send_video stuff into controller, the ability to restart the ffmpeg process would
 # be useful
 
 # /stationary only able to move left and right.
-
-# Impliment as many of these as possible.
-
 #/mod username
 #/unmod username
- 
-#Robocaster & Channel Mods:
- 
-#Channel admin Stuff:
- 
 #/ban username
 #/unban username
 #/timeout username
 #/untimeout username
+#/stop username
+#/unstop username
+#/tts volume (int)
+#/mic mute
+#/mic unmute
+#/xcontrol username
+#/xcontrol username (int time)
+#/xcontrol off
+#/speed (int)
+
+
+# Cant DO
+# Can't do anything that requires server side stuff. Ban and timoue are do-able, 
+# only on at the bot level.
+#(blocking a user also bans them from your channel)
+#/block username
+#/unblock username
+
+
+# Done
 #/devmode on
 #/devmode off
 #/anon control on
@@ -34,33 +42,11 @@ import tts.tts as tts
 #/anon tts off
 #/anon off
 #/anon on
- 
-#Assign xcontrol manually. 
-#/xcontrol username
-#/xcontrol username (int time)
-#/xcontrol off
- 
- 
-#(block controls for specific users)
-#/stop username
-#/unstop username
- 
-#Robot Admin Stuff:
 #/tts mute
 #/tts unmute
-#/tts volume (int)
-#/mic mute
-#/mic unmute
-#/speed (int)
 #/brightness (int)
 #/contrast (int)
 #/saturation (int)
- 
-#User level: 
- 
-#(blocking a user also bans them from your channel)
-#/block username
-#/unblock username
 
 move_handler = None
 mods=[]
@@ -95,23 +81,6 @@ def add_command(command, function):
     global commands
     commands[command] = function
     
-def devmode_handler(command, args):
-    global dev_mode
-    global dev_mode_mods
-    
-    if len(command) > 2:
-        if is_authed(args['name']) == 2: # Owner
-            if command[2] == 'on':
-                dev_mode = True
-                dev_mode_mods = False
-            elif command[2] == 'off':
-                dev_mode = False
-            elif command[2] == 'mods':
-                dev_mode = True
-                dev_mode_mods = True
-    print("dev_mode : " + dev_mode)
-    print("dev_mode_mods : " + dev_mode_mods)
-
 def anon_handler(command, args):
     global anon_control
 
@@ -136,6 +105,33 @@ def anon_handler(command, args):
                         tts.mute_anon_tts()
     print("anon_control : " + anon_control)
 
+def devmode_handler(command, args):
+    global dev_mode
+    global dev_mode_mods
+    
+    if len(command) > 2:
+        if is_authed(args['name']) == 2: # Owner
+            if command[2] == 'on':
+                dev_mode = True
+                dev_mode_mods = False
+            elif command[2] == 'off':
+                dev_mode = False
+            elif command[2] == 'mods':
+                dev_mode = True
+                dev_mode_mods = True
+    print("dev_mode : " + dev_mode)
+    print("dev_mode_mods : " + dev_mode_mods)
+
+def mic_handler(command, args):
+    if is_authed(args['name']) == 2: # Owner
+        if len(command) > 2:
+            if command[2] == 'mute':
+                # Mic Mute
+                return
+            elif command[2] == 'unmute':
+                # Mic Unmute
+                return
+
 def tts_handler(command, args):
     print("tts :", tts)
     if len(command) > 2:
@@ -149,16 +145,6 @@ def tts_handler(command, args):
                 return
             elif command[2] == 'vol':
                 # TTS int volume command
-                return
-
-def mic_handler(command, args):
-    if is_authed(args['name']) == 2: # Owner
-        if len(command) > 2:
-            if command[2] == 'mute':
-                # Mic Mute
-                return
-            elif command[2] == 'unmute':
-                # Mic Unmute
                 return
 
 def brightness(command, args):
