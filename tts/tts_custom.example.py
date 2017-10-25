@@ -1,4 +1,5 @@
 import os
+import mod_utils
 # Example for adding custom code to the controller
 hw_num = None
 module = None
@@ -12,7 +13,7 @@ def setup(robot_config):
     
  
     # Load the appropriate tts module and call the default tts setup routine
-    module = __import__("tts."+robot_config.get('tts', 'type'), fromlist=[robot_config.get('tts', 'type')])
+    module = mod_utils.import_module('tts', robot_config.get('tts', 'type'))
     module.setup(robot_config)
        
 def say(*args):
