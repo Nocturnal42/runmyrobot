@@ -2,6 +2,7 @@ from __future__ import print_function
 import os
 import networking
 import tts.tts as tts
+import schedule
 
 # TODO 
 # If I pull the send_video stuff into controller, the ability to restart the ffmpeg process would
@@ -10,10 +11,6 @@ import tts.tts as tts
 # /stationary only able to move left and right.
 #/mod username
 #/unmod username
-#/ban username
-#/unban username
-#/timeout username
-#/untimeout username
 #/stop username
 #/unstop username
 #/tts volume (int)
@@ -47,6 +44,10 @@ import tts.tts as tts
 #/brightness (int)
 #/contrast (int)
 #/saturation (int)
+#/ban username
+#/unban username
+#/timeout username
+#/untimeout username
 
 move_handler = None
 mods=[]
@@ -55,6 +56,7 @@ dev_mode_mods = False
 anon_control = None
 owner = None
 v4l2_ctl = None
+banned=[]
 
 def setup(robot_config):
     global owner
@@ -105,6 +107,60 @@ def anon_handler(command, args):
                         tts.mute_anon_tts()
     print("anon_control : " + anon_control)
 
+def ban_handler(command, args):
+    global banned
+    
+    if len(command) > 2:
+        user = command[2]
+        if is_authed(args['name']): # Moderator
+            banned.append(user)
+            print(user + " added to ban list")
+            tts.mute_user_tts(user)            
+
+def unban_handler(command, args):
+    global banned
+
+    if len(command) > 2:
+        user = command[2]
+        if is_authed(args['name']): # Moderator
+            if user in banned:
+                banned.remove(user)
+                print(user + " removed from ban list")
+                tts.unmute_user_tts(user)            
+
+def timeout_handler(command, args):
+    global banned
+
+    if len(command) > 2:
+        user = command[2]
+        if is_authed(args['name']): # Moderator
+            banned.append(user)
+            schedule.single_task(5, untimeout_user, user)
+            print(user + " added to timeout list")
+            tts.mute_user_tts(user)            
+            
+    
+def untimeout_user(user):
+    global banned
+
+    if user in banned:  
+        banned.remove(user)
+        print(user + " timeout expired")
+        tts.unmute_user_tts(user)            
+
+
+def untimeout_handler(command, args):
+    global banned
+
+    if len(command) > 2:
+        user = command[2]
+        if is_authed(args['name']): # Moderator
+            if user in banned:
+                banned.remove(user)
+                print(user = " removed from timeout list")
+                tts.unmute_user_tts(user)            
+    
+    
 def devmode_handler(command, args):
     global dev_mode
     global dev_mode_mods
@@ -164,10 +220,14 @@ def saturation(command, args):
 
 
 # This is a dictionary of commands and their handler functions
-commands={    '.devmode'    :    devmode_handler,
-	            '.anon'       :    anon_handler,
-	            '.tts'        :    tts_handler,
+commands={    '.anon'       :    anon_handler,
+	            '.ban'        :    ban_handler,
+	            '.unban'      :    unban_handler,
+	            '.timeout'    :    timeout_handler,
+	            '.untimout'   :    untimeout_handler,
+              '.devmode'    :    devmode_handler,
 	            '.mic'        :    mic_handler,
+	            '.tts'        :    tts_handler,
               '.brightness' :    brightness,
               '.contrast'   :    contrast,    
               '.saturation' :    saturation
@@ -194,7 +254,7 @@ def move_auth(args):
     
     if anon_control == False and anon:
         exit()
-    elif dev_mode_mods:
+    elif dev_mode_mods: 
         if is_authed(user):
             move_handler(args)
         else:
@@ -204,7 +264,7 @@ def move_auth(args):
             move_handler(args)
         else:
             exit()
-    else:
+    elif user not in banned: # Check for banned and timed out users
         move_handler(args)
  
     return

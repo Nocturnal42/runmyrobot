@@ -12,6 +12,7 @@ mute = False
 mute_anon = None
 urlRegExp = "(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?"
 url_filter = None
+banned=[]
 
 def setup(robot_config):
     global type
@@ -60,7 +61,7 @@ def setup(robot_config):
 
 def say(*args):
     message = args[0]
-
+    
     if mute:
         exit()
     else:
@@ -68,12 +69,13 @@ def say(*args):
         if len(args) == 1:
             tts_module.say(message)
         else:
+            user = args[1]['name']
             if mute_anon and args[1]['anonymous'] == True:
                 exit()
             if url_filter:
                 if re.search(urlRegExp, message):
                     exit()
-            else:
+            elif user not in banned: 
                 tts_module.say(message, args[1])
     
 def mute_tts():
@@ -98,5 +100,17 @@ def unmute_anon_tts():
     global mute_anon
     mute_anon = False
     if debug_messages:
-        print ("Anonymous TTS unmuted")    
+        print ("Anonymous TTS unmuted")
+        
+def mute_user_tts(user):
+    global banned
+    banned.append(user)
+    print(user + " TTS muted")
+    
+def unmute_user_tts(user):
+    global banned
+    if user in banned:
+        banned.remove(user)
+        print(user + " TTS unmuted")
+            
     
