@@ -101,6 +101,7 @@ In this way, existing hardware functions can be modified and extended, or entire
 The ```hardware_custom.py``` file needs to have the same two function, as outlined for new hardware above, but in order to extend functionality there is a slight difference.
 
 ```python
+import mod_utils
 module=None
 
 def setup(robot_config):
@@ -110,7 +111,7 @@ def setup(robot_config):
 
     # This code calls the default setup function for your hardware.
     # global module
-    module = __import__("hardware."+robot_config.get('robot', 'type'), fromlist=[robot_config.get('robot', 'type')])
+    module = mod_utils.import_module('hardware', robot_config.get('robot', 'type')])
     module.setup(robot_config)
 
 def move(args):
@@ -134,12 +135,6 @@ The ```move()``` function has a command interpeter similar to the one in hardwar
 only needs to contain the commands that aren't handled in the hardware module. After the custom command interpreter has run, it should call the ```move()``` command from the hardware module, to handle the non custom commands.
 
 
-Note: This code is python 2 specific, for python 3 the code will need to be changed to import ```importlib``` and the ```setup()``` function will need to be changed to match the following.
-```python
-type = robot_config.get('robot', 'type');
-module = importlib.import_module('hardware.'+type)
-```
-
 ## Extending Existing TTS
 
 This is very similar to extending existing hardware as outlined above. Except that where extending hardware involes adding new functions, extending TTS is more about modifying the way messages are handled.
@@ -151,6 +146,7 @@ In this way, existing tts functions can be modified and extended, or entirely re
 The ```tts_custom.py``` file needs to have the same two function, as outlined for new TTS above, but in order to extend functionality there is a slight difference.
 
 ```python
+import mod_utils
 module=None
 
 def setup(robot_config):
@@ -160,7 +156,7 @@ def setup(robot_config):
 
     # This code calls the default setup function for your tts.
     # global module
-    module = __import__("tts."+robot_config.get('tts', 'type'), fromlist=[robot_config.get('tts', 'type')])
+    module = mod_utils.import_module('tts', robot_config.get('tts', 'type'))
     module.setup(robot_config)
 
 def say(*args):
@@ -185,11 +181,6 @@ The ```setup()``` function includes code to import the hardware controller you a
 
 The ```say()``` function should modify the message or tts function before calling, the ```say()``` command from the tts module, to handle the actualy text conversion to sound.
 
-Note: This code is python 2 specific, for python 3 the code will need to be changed to import ```importlib``` and the ```setup()``` function will need to be changed to match the following.
-```python
-type = robot_config.get('tts', 'type');
-module = importlib.import_module('tts.'+type)
-```
 
 ## Extending Chat Handling
 
@@ -251,3 +242,4 @@ This example shows how to play a custom sound file for specific users, before th
 ## hardware_custom.example.py
 
 This example shows how to add max7219 led support to your chosen hardware controller. 
+
