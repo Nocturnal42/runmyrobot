@@ -1,6 +1,7 @@
 from __future__ import print_function
 import RPi.GPIO as GPIO
 import time
+import extended_command
 
 debug_messages=None
 
@@ -11,6 +12,20 @@ StepPinForward=None
 StepPinBackward=None
 StepPinLeft=None
 StepPinRight=None
+
+def set_rotate_time(command, args):
+    global rotatetimes
+    if extended_command.is_authed(args['name']) == 2: # Owner
+        if len(command) > 2:
+            rotatetimes=int(command[2])
+
+
+def set_sleep_time(command, args):
+    global sleeptime
+    if extended_command.is_authed(args['name']) == 2: # Owner
+        if len(command) > 2:
+            sleeptime=int(command[2])
+
 
 def setup(robot_config):
     global debug_messages
@@ -30,6 +45,10 @@ def setup(robot_config):
         print(" mode ="+str(mode))
 
     GPIO.cleanup()
+    
+    if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add motor commands
+        extended_command.add_command('.set_rotate_time', set_rotate_time)
+        extended_command.add_command('.set_sleep_time', set_sleep_time)
 
 # TODO passing these as tuples may be unnecessary, it may accept lists as well. 
     StepPinForward = tuple(robot_config.get('l298n', 'StepPinForward').split(','))

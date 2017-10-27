@@ -164,7 +164,7 @@ def untimeout_handler(command, args):
 def devmode_handler(command, args):
     global dev_mode
     global dev_mode_mods
-    
+   
     if len(command) > 2:
         if is_authed(args['name']) == 2: # Owner
             if command[2] == 'on':
@@ -175,8 +175,8 @@ def devmode_handler(command, args):
             elif command[2] == 'mods':
                 dev_mode = True
                 dev_mode_mods = True
-    print("dev_mode : " + dev_mode)
-    print("dev_mode_mods : " + dev_mode_mods)
+    print("dev_mode : " + str(dev_mode))
+    print("dev_mode_mods : " + str(dev_mode_mods))
 
 def mic_handler(command, args):
     if is_authed(args['name']) == 2: # Owner
@@ -204,18 +204,19 @@ def tts_handler(command, args):
                 return
 
 def brightness(command, args):
-    if is_authed(args['name']): # Moderator
-        os.system(v4l2_ctl + " --set-ctrl brightness=" . int(command[2]))
-        return
+    if len(command) > 2:
+        if is_authed(args['name']): # Moderator
+            os.system(v4l2_ctl + " --set-ctrl brightness=" + command[2])
 
 def contrast(command, args):
-    if is_authed(args['name']): # Moderator
-        os.system(v4l2_ctl + " --set-ctrl contrast=" . int(command[2]))
-        return
+    if len(command) > 2:
+        if is_authed(args['name']): # Moderator
+            os.system(v4l2_ctl + " --set-ctrl contrast=" + command[2])
 
 def saturation(command, args):
-    if is_authed(args['name']): # Moderator
-        os.system(v4l2_ctl + " --set-ctrl saturation=" . int(command[2]))
+    if len(command) > 2:
+        if is_authed(args['name']): # Moderator
+            os.system(v4l2_ctl + " --set-ctrl saturation=" + command[2])
 	
 
 
