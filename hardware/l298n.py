@@ -16,15 +16,16 @@ StepPinRight=None
 def set_rotate_time(command, args):
     global rotatetimes
     if extended_command.is_authed(args['name']) == 2: # Owner
-        if len(command) > 2:
-            rotatetimes=int(command[2])
-
+        if len(command) > 1:
+            rotatetimes=float(command[1])
+            print("rotate time multiplier set to : %d" % float(command[1]))
 
 def set_sleep_time(command, args):
     global sleeptime
     if extended_command.is_authed(args['name']) == 2: # Owner
-        if len(command) > 2:
-            sleeptime=int(command[2])
+        if len(command) > 1:
+            sleeptime=float(command[1])
+            print("sleep time set to : %d" % float(command[2]))
 
 
 def setup(robot_config):
