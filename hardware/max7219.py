@@ -39,7 +39,8 @@ def setup(robot_config):
     # Activate display
     spi.writebytes([0x0f])
     spi.writebytes([0x00])
-    if robot_config.getint('max7219', 'ledrotate'):
+    rotate = robot_config.getint('max7219', 'ledrotate')
+    if rotate == 180:
         LEDEmoteSmile = LEDEmoteSmile[::-1]
         LEDEmoteSad = LEDEmoteSad[::-1]
         LEDEmoteTongue = LEDEmoteTongue[::-1]
