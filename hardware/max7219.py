@@ -12,7 +12,7 @@ def setup(robot_config):
     global LEDEmoteSmile
     global LEDEmoteSad
     global LEDEmoteTongue
-    global LEDEmoteSurprise
+    global LEDEmoteSuprise
     global module
     
     #LED controlling
