@@ -5,12 +5,6 @@ from subprocess import Popen, PIPE
 import os
 import random
 
-# to satisfy both python 2 and 3, goes away if keys are in conf
-try:
-    import secret
-except ImportError:
-    import tts.secret as secret
-
 client = None
 polly = None
 voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joanna', 'Joey', 'Justin',
@@ -39,14 +33,18 @@ def setup(robot_config):
     owner_voice = robot_config.get('polly', 'owner_voice')
     robot_voice = robot_config.get('polly', 'robot_voice')
     hw_num = robot_config.getint('tts', 'hw_num')
-    
-    client = boto3.Session(aws_access_key_id=secret.aws_Key,
-                            aws_secret_access_key=secret.aws_Secret,
-                            region_name=secret.aws_Region)
 
-    polly = boto3.client('polly', aws_access_key_id=secret.aws_Key,
-                            aws_secret_access_key=secret.aws_Secret,
-                            region_name=secret.aws_Region)
+    access_key=robot_config.get('polly', 'access_key')
+    secrets_key=robot_config.get('polly', 'secrets_key')
+    region_name=robot_config.get('polly', 'region_name')
+    
+    client = boto3.Session(aws_access_key_id=access_key,
+                            aws_secret_access_key=secrets_key,
+                            region_name=region_name)
+
+    polly = boto3.client('polly', aws_access_key_id=access_key,
+                            aws_secret_access_key=secrets_key,
+                            region_name=region_name)
                             
     users[owner] = owner_voice
     
