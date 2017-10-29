@@ -52,10 +52,10 @@ def setup(robot_config):
         extended_command.add_command('.set_sleep_time', set_sleep_time)
 
 # TODO passing these as tuples may be unnecessary, it may accept lists as well. 
-    StepPinForward = tuple(robot_config.get('l298n', 'StepPinForward').split(','))
-    StepPinBackward = tuple(robot_config.get('l298n', 'StepPinBackward').split(','))
-    StepPinLeft = tuple(robot_config.get('l298n', 'StepPinLeft').split(','))
-    StepPinRight = tuple(robot_config.get('l298n', 'StepPinRight').split(','))
+    StepPinForward = tuple(map(int, robot_config.get('l298n', 'StepPinForward').split(',')))
+    StepPinBackward = tuple(map(int,robot_config.get('l298n', 'StepPinBackward').split(',')))
+    StepPinLeft = tuple(map(int,robot_config.get('l298n', 'StepPinLeft').split(',')))
+    StepPinRight = tuple(map(int,robot_config.get('l298n', 'StepPinRight').split(',')))
 	
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(StepPinForward, GPIO.OUT)
