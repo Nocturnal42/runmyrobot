@@ -67,37 +67,37 @@ def startListenForChatServer():
 
 def onHandleAppServerConnect(*args):
     print
-    print "chat socket.io connect"
+    print("chat socket.io connect")
     print
     identifyRobotID()
 
 
 def onHandleAppServerReconnect(*args):
     print
-    print "app server socket.io reconnect"
+    print("app server socket.io reconnect")
     print
     identifyRobotID()    
     
 def onHandleAppServerDisconnect(*args):
     print
-    print "app server socket.io disconnect"
+    print("app server socket.io disconnect")
     print
  
 def onHandleChatConnect(*args):
     print
-    print "chat socket.io connect"
+    print("chat socket.io connect")
     print
     identifyRobotID()
 
 def onHandleChatReconnect(*args):
     print
-    print "chat socket.io reconnect"
+    print("chat socket.io reconnect")
     print
     identifyRobotID()
     
 def onHandleChatDisconnect(*args):
     print
-    print "chat socket.io disconnect"
+    print("chat socket.io disconnect")
     print
 
 def setupSocketIO(robot_config):
@@ -177,7 +177,7 @@ def ipInfoUpdate():
 
 def identifyRobotId():
     """tells the server which robot is using the connection"""
-    print "sending identify robot id messages"
+    print("sending identify robot id messages")
     if not no_chat_server:
         chatSocket.emit('identify_robot_id', robot_id);
     appServerSocketIO.emit('identify_robot_id', robot_id);
