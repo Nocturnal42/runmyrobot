@@ -4,6 +4,7 @@ import hardware.max7219
 module = None
 
 def setup(robot_config):
+    global module
     # Your custom setup code goes here
     
  
@@ -27,5 +28,5 @@ def move(args):
     hardware.max7219.move(args)
     
     # This code calls the default command interpreter function for your hardware.
-    module.move(command)
+    module.move(args)
     

@@ -6,7 +6,8 @@ LEDOff = [0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0]
 LEDEmoteSmile = [0x0,0x0,0x24,0x0,0x42,0x3C,0x0,0x0]
 LEDEmoteSad = [0x0,0x0,0x24,0x0,0x0,0x3C,0x42,0x0]
 LEDEmoteTongue = [0x0,0x0,0x24,0x0,0x42,0x3C,0xC,0x0]
-LEDEmoteSuprise = [0x0,0x0,0x24,0x0,0x18,0x24,0x24,0x18]
+LEDEmoteSurprise = [0x0,0x0,0x24,0x0,0x18,0x24,0x24,0x18]
+spi = None
 
 def setup(robot_config):
     global LEDEmoteSmile
@@ -14,6 +15,7 @@ def setup(robot_config):
     global LEDEmoteTongue
     global LEDEmoteSuprise
     global module
+    global spi
     
     #LED controlling
     spi = spidev.SpiDev()
@@ -44,7 +46,7 @@ def setup(robot_config):
         LEDEmoteSmile = LEDEmoteSmile[::-1]
         LEDEmoteSad = LEDEmoteSad[::-1]
         LEDEmoteTongue = LEDEmoteTongue[::-1]
-        LEDEmoteSuprise = LEDEmoteSuprise[::-1]
+        LEDEmoteSurprise = LEDEmoteSurprise[::-1]
     SetLED_Off()
             
 def SetLED_On():
@@ -67,9 +69,9 @@ def SetLED_E_Tongue():
     for i in range(len(columns)):
         spi.xfer([columns[i],LEDEmoteTongue[i]])
 
-def SetLED_E_Suprised():
+def SetLED_E_Surprised():
     for i in range(len(columns)):
-        spi.xfer([columns[i],LEDEmoteSuprise[i]])
+        spi.xfer([columns[i],LEDEmoteSurprise[i]])
 
 def SetLED_Low():
     # brightness MIN
@@ -109,6 +111,6 @@ def move(args):
     if command == 'LED_E_TONGUE':
         SetLED_On()
         SetLED_E_Tongue()
-    if command == 'LED_E_SUPRISED':
+    if command == 'LED_E_SURPRISED':
         SetLED_On()
         SetLED_E_Suprised()

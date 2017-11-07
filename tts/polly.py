@@ -7,6 +7,7 @@ import random
 
 client = None
 polly = None
+random = None
 voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joanna', 'Joey', 'Justin',
              'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]             
 users = {}
@@ -33,6 +34,7 @@ def setup(robot_config):
     owner_voice = robot_config.get('polly', 'owner_voice')
     robot_voice = robot_config.get('polly', 'robot_voice')
     hw_num = robot_config.getint('tts', 'hw_num')
+    random_voice = robot_config.getboolean('polly', 'random_voices')
 
     access_key=robot_config.get('polly', 'access_key')
     secrets_key=robot_config.get('polly', 'secrets_key')
@@ -47,10 +49,12 @@ def setup(robot_config):
                             region_name=region_name)
                             
     users[owner] = owner_voice
-    
-    if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add voice command
-        import extended_command
-        extended_command.add_command('.new_voice', new_voice)
+    users['jill'] = 'Amy'
+
+    if random_voice: # random voices enabled
+        if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add voice command
+            import extended_command
+            extended_command.add_command('.new_voice', new_voice)
         
 def say(*args):
     message = args[0]
@@ -65,14 +69,17 @@ def say(*args):
     else:
         user = args[1]['name']
 
-        if (args[1]['anonymous'] == True):
-            voice = 'Mizuki'
+        if random_voice:
+            if (args[1]['anonymous'] == True):
+                voice = 'Mizuki'
+            else:
+                if user not in users:
+                    users[user] = random.choice(voices)
+                voice = users[user]    
+        
+            print(user + " voice " + voice + ": " + message)
         else:
-            if user not in users:
-                users[user] = random.choice(voices)
-            voice = users[user]    
-
-        print(user + " voice " + voice + ": " + message)
+            voice = robot_voice
     
         response = polly.synthesize_speech(
             OutputFormat = 'mp3',
