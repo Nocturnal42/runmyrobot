@@ -173,16 +173,16 @@ def configWifiLogin(secretKey):
 #straightDelay = commandArgs.straight_delay 
 #turnDelay = commandArgs.turn_delay
 
-            
-# TODO changeVolumeHighThenNormal() and handleLoudCommand() dont belong here, should
+# TODO changeVolumeNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
-def changeVolumeHighThenNormal():
-    os.system("amixer -c 2 cset numid=3 %d%%" % 100)
-    time.sleep(25)
+def changeVolumeNormal():
     os.system("amixer -c 2 cset numid=3 %d%%" % robot_config.getint('tts', 'tts_volume'))
 
 def handleLoudCommand(seconds):
-    thread.start_new_thread(changeVolumeHighThenNormal, (seconds,))
+    os.system("amixer -c 2 cset numid=3 %d%%" % 100)
+    schedule.single_task(seconds, changeVolumeNormal)
+    
+
 
 handlingCommand = False    
 def handle_command(args):
@@ -222,7 +222,7 @@ def on_handle_command(*args):
    else:
        thread.start_new_thread(handle_command, args)
 
-def on_handle_exclusive_control(*args):
+def onHandleExclusiveControl(*args):
    thread.start_new_thread(handle_exclusive_control, args)
 
 def on_handle_chat_message(*args):
@@ -230,7 +230,7 @@ def on_handle_chat_message(*args):
        thread.start_new_thread(handle_chat_message, args)
    else:
        thread.start_new_thread(chat_module.handle_chat, args)
-
+   
 # if auto_wifi is enabled, schdule a task for it.
 def auto_wifi_task():
     if secret_key is not None:

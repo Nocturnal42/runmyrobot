@@ -65,6 +65,41 @@ def startListenForControlServer():
 def startListenForChatServer():
    thread.start_new_thread(waitForChatServer, ())
 
+def onHandleAppServerConnect(*args):
+    print
+    print "chat socket.io connect"
+    print
+    identifyRobotID()
+
+
+def onHandleAppServerReconnect(*args):
+    print
+    print "app server socket.io reconnect"
+    print
+    identifyRobotID()    
+    
+def onHandleAppServerDisconnect(*args):
+    print
+    print "app server socket.io disconnect"
+    print
+ 
+def onHandleChatConnect(*args):
+    print
+    print "chat socket.io connect"
+    print
+    identifyRobotID()
+
+def onHandleChatReconnect(*args):
+    print
+    print "chat socket.io reconnect"
+    print
+    identifyRobotID()
+    
+def onHandleChatDisconnect(*args):
+    print
+    print "chat socket.io disconnect"
+    print
+
 def setupSocketIO(robot_config):
     global controlHostPort
     global chatHostPort
@@ -111,6 +146,9 @@ def setupChatSocket(on_handle_chat_message):
         print('finished using socket io to connect to chat ', chatHostPort)
         startListenForChatServer()
         chatSocket.on('chat_message_with_name', on_handle_chat_message)
+        chatSocket.on('connect', onHandleChatConnect)
+        chatSocket.on('reconnect', onHandleChatReconnect)    
+        chatSocket.on('disconnect', onHandleChatDisconnect)
         return chatSocket
     else:
         print("chat server connection disabled")
@@ -122,7 +160,9 @@ def setupAppSocket(on_handle_exclusive_control):
     print("finished connecting to app server")
     startListenForAppServer()
     appServerSocketIO.on('exclusive_control', on_handle_exclusive_control)
-    identifyRobotId()
+    appServerSocketIO.on('connect', onHandleAppServerConnect)
+    appServerSocketIO.on('reconnect', onHandleAppServerReconnect)
+    appServerSocketIO.on('disconnect', onHandleAppServerDisconnect)
     return appServerSocketIO
 
 def sendChargeState(charging):
@@ -136,10 +176,12 @@ def ipInfoUpdate():
                   {'ip': subprocess.check_output(["hostname", "-I"]).decode('utf-8'), 'robot_id': robot_id})
 
 def identifyRobotId():
+    """tells the server which robot is using the connection"""
+    print "sending identify robot id messages"
     if not no_chat_server:
         chatSocket.emit('identify_robot_id', robot_id);
     appServerSocketIO.emit('identify_robot_id', robot_id);
-    
+   
 #schedule a task to tell the server our robot it.
 def identifyRobot_task():
     # tell the server what robot id is using this connection
