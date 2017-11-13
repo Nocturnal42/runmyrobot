@@ -5,7 +5,6 @@ from __future__ import print_function
 
 import traceback
 import argparse
-import telly
 import robot_util
 import os.path
 import networking
@@ -85,13 +84,13 @@ robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
 # get command line args to reprogram telly? 
 # TODO : Find out if these do something like adjust eeprom, and if so belong
 # here or can be safely set in letsrobot.conf
-if args.right_wheel_forward_speed is not None:
+if commandArgs.right_wheel_forward_speed is not None:
     robot_config.set('telly', 'right_wheel_forward_speed', str(commandArgs.right_wheel_forward_speed))
-if args.right_wheel_backward_speed is not None:
+if commandArgs.right_wheel_backward_speed is not None:
     robot_config.set('telly', 'right_wheel_backward_speed', str(commandArgs.right_wheel_backward_speed))
-if args.left_wheel_forward_speed is not None:
+if commandArgs.left_wheel_forward_speed is not None:
     robot_config.set('telly', 'left_wheel_forward_speed', str(commandArgs.left_wheel_forward_speed))
-if args.left_wheel_backward_speed is not None:
+if commandArgs.left_wheel_backward_speed is not None:
     robot_config.set('telly', 'left_wheel_backward_speed', str(commandArgs.left_wheel_backward_speed))
 
 # set variables pulled from the config
