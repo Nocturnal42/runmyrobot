@@ -7,6 +7,7 @@ import random
 import atexit
 import networking
 import tts.tts as tts
+import json
 
 try:
     from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
@@ -33,6 +34,14 @@ chargeValue = 100
 secondsToCharge = None
 secondsToDischarge = None
 chargeIONumber = None
+
+forward = None
+backward = None
+left = None
+right = None
+
+straightDelay = None
+turnDelay = None
 
 
 servoMin = [150, 150, 130]  # Min pulse length out of 4096
@@ -171,6 +180,10 @@ def runMotor(motorIndex, direction):
         motor.setSpeed(128)
         motor.run(Adafruit_MotorHAT.BACKWARD)
 
+def times(lst, number):
+    return [x*number for x in lst]
+
+
 def setup(robot_config):
     global mh
     global turningSpeedActuallyUsed
@@ -179,6 +192,12 @@ def setup(robot_config):
     global secondsToCharge
     global secondsToDischarge
     global chargeIONumber
+    global forward
+    global backward
+    global left
+    global right
+    global straightDelay
+    global turnDelay
 
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(chargeIONumber, GPIO.IN)
@@ -186,6 +205,15 @@ def setup(robot_config):
     secondsToCharge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'charge_hours')
     secondsToDischarge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'discharge_hours')
     chargeIONumber = robot_config.getint('motor_hat', 'chargeIONumber')
+
+    forward = json.loads(robot_config.get('motor_hat', 'forward'))
+    backward = times(forward, -1)
+    left = json.loads(robot_config.get('motor_hat', 'left'))
+    right = times(left, -1)
+
+    straightDelay = robot_config.getfloat('robot', 'straight_delay')
+    turnDelay = robot_config.getfloat('robot', 'turn_delay')
+
 
     if motorsEnabled:
         # create a default object, no changes to I2C address or frequency

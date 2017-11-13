@@ -175,17 +175,18 @@ def ipInfoUpdate():
     appServerSocketIO.emit('ip_information',
                   {'ip': subprocess.check_output(["hostname", "-I"]).decode('utf-8'), 'robot_id': robot_id})
 
-def identifyRobotId():
+def identifyRobotID():
     """tells the server which robot is using the connection"""
     print("sending identify robot id messages")
     if not no_chat_server:
         chatSocket.emit('identify_robot_id', robot_id);
-    appServerSocketIO.emit('identify_robot_id', robot_id);
+    if not appServerSocketIO == None:
+        appServerSocketIO.emit('identify_robot_id', robot_id);
    
 #schedule a task to tell the server our robot it.
 def identifyRobot_task():
     # tell the server what robot id is using this connection
-    identifyRobotId()
+    identifyRobotID()
     
     if platform.system() == 'Linux':
         ipInfoUpdate()

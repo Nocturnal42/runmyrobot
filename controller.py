@@ -65,6 +65,10 @@ parser.add_argument('--custom-chat', type=str2bool, default=robot_config.getbool
 parser.add_argument('--ext-chat-command', type=str2bool, default=robot_config.getboolean('tts', 'ext_chat'))
 parser.add_argument('--secure-cert', type=str2bool, default=robot_config.getboolean('misc', 'secure_cert'))
 parser.add_argument('--debug-messages', type=str2bool, default=robot_config.getboolean('misc', 'debug_messages'))
+parser.add_argument('--right-wheel-forward-speed', type=int)
+parser.add_argument('--right-wheel-backward-speed', type=int)
+parser.add_argument('--left-wheel-forward-speed', type=int)
+parser.add_argument('--left-wheel-backward-speed', type=int)
 commandArgs = parser.parse_args()
 
 # push command line variables back into the config
@@ -77,6 +81,18 @@ robot_config.set('misc', 'custom_chat', str(commandArgs.custom_chat))
 robot_config.set('tts', 'ext_chat', str(commandArgs.ext_chat_command))
 robot_config.set('misc', 'secure_cert', str(commandArgs.secure_cert))
 robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
+
+# get command line args to reprogram telly? 
+# TODO : Find out if these do something like adjust eeprom, and if so belong
+# here or can be safely set in letsrobot.conf
+if args.right_wheel_forward_speed is not None:
+    robot_config.set('telly', 'right_wheel_forward_speed', str(commandArgs.right_wheel_forward_speed))
+if args.right_wheel_backward_speed is not None:
+    robot_config.set('telly', 'right_wheel_backward_speed', str(commandArgs.right_wheel_backward_speed))
+if args.left_wheel_forward_speed is not None:
+    robot_config.set('telly', 'left_wheel_forward_speed', str(commandArgs.left_wheel_forward_speed))
+if args.left_wheel_backward_speed is not None:
+    robot_config.set('telly', 'left_wheel_backward_speed', str(commandArgs.left_wheel_backward_speed))
 
 # set variables pulled from the config
 robotID = commandArgs.robot_id
@@ -162,17 +178,6 @@ def configWifiLogin(secretKey):
         print("exception while configuring setting wifi", url)
         traceback.print_exc()
 
-# TODO figure out this code. Looks like it is needed for motor_hat and mdd10
-#def times(lst, number):
-#    return [x*number for x in lst]
-#
-#forward = json.loads(commandArgs.forward)
-#backward = times(forward, -1)
-#left = json.loads(commandArgs.left)
-#right = times(left, -1)
-#straightDelay = commandArgs.straight_delay 
-#turnDelay = commandArgs.turn_delay
-
 # TODO changeVolumeNormal() and handleLoudCommand() dont belong here, should
 # be in a custom handler
 def changeVolumeNormal():
@@ -222,7 +227,7 @@ def on_handle_command(*args):
    else:
        thread.start_new_thread(handle_command, args)
 
-def onHandleExclusiveControl(*args):
+def on_handle_exclusive_control(*args):
    thread.start_new_thread(handle_exclusive_control, args)
 
 def on_handle_chat_message(*args):

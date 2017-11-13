@@ -9,6 +9,8 @@ AN1 - None
 AN2 = None
 DIG1 = None
 DIG2 = None
+turnDelay = None
+straightDelay = None
 
 #Cytron MDD10 GPIO setup
 def setup(robot_config):
@@ -16,6 +18,12 @@ def setup(robot_config):
     global AN2
     global DIG1
     global DIG2
+    global turnDelay
+    global straightDelay
+
+    straightDelay = robot_config.getfloat('robot', 'straight_delay')
+    turnDelay = robot_config.getfloat('robot', 'turn_delay')
+
     
 #    pwm.setPWMFreq(60)
     GPIO.setmode(GPIO.BCM)
