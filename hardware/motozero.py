@@ -13,20 +13,22 @@ Motor3Enable = None
 Motor4A = None
 Motor4B = None
 Motor4Enable = None
+MotorDelay = None
 
 def setup(robot_config):
-    global Motor1A = None
-    global Motor1B = None
-    global Motor1Enable = None
-    global Motor2A = None
-    global Motor2B = None
-    global Motor2Enable = None
-    global Motor3A = None
-    global Motor3B = None
-    global Motor3Enable = None
-    global Motor4A = None
-    global Motor4B = None
-    global Motor4Enable = None
+    global Motor1A
+    global Motor1B
+    global Motor1Enable
+    global Motor2A
+    global Motor2B
+    global Motor2Enable
+    global Motor3A
+    global Motor3B
+    global Motor3Enable
+    global Motor4A
+    global Motor4B
+    global Motor4Enable
+    global MotorDelay
 
     Motor1A = robot_config/getint('motozero', 'Motor1A')
     Motor1B = robot_config/getint('motozero', 'Motor1B')
@@ -40,6 +42,7 @@ def setup(robot_config):
     Motor4A = robot_config/getint('motozero', 'Motor4A')
     Motor4B = robot_config/getint('motozero', 'Motor4B')
     Motor4Enable = robot_config/getint('motozero', 'Motor4Enable')
+    MotorDelay = robot_config.getfloat('motozero', 'MotorDelay')
 
     GPIO.cleanup()
     GPIO.setmode(GPIO.BCM)
@@ -77,7 +80,7 @@ def move(args):
         GPIO.output(Motor4B, GPIO.HIGH)
         GPIO.output(Motor4Enable, GPIO.HIGH)
 
-        time.sleep(0.3)
+        time.sleep(MotorDelay)
 
         GPIO.output(Motor1B, GPIO.LOW)
         GPIO.output(Motor2B, GPIO.LOW)
@@ -96,7 +99,7 @@ def move(args):
         GPIO.output(Motor4A, GPIO.HIGH)
         GPIO.output(Motor4Enable, GPIO.HIGH)
 
-        time.sleep(0.3)
+        time.sleep(MotorDelay)
 
         GPIO.output(Motor1A, GPIO.LOW)
         GPIO.output(Motor2A, GPIO.LOW)
@@ -116,7 +119,7 @@ def move(args):
         GPIO.output(Motor4B, GPIO.HIGH)
         GPIO.output(Motor4Enable, GPIO.HIGH)
 
-        time.sleep(0.3)
+        time.sleep(MotorDelay)
 
         GPIO.output(Motor3B, GPIO.LOW)
         GPIO.output(Motor1A, GPIO.LOW)
@@ -136,7 +139,7 @@ def move(args):
         GPIO.output(Motor4A, GPIO.HIGH)
         GPIO.output(Motor4Enable, GPIO.HIGH)
 
-        time.sleep(0.3)
+        time.sleep(MotorDelay)
 
         GPIO.output(Motor3A, GPIO.LOW)
         GPIO.output(Motor1B, GPIO.LOW)
