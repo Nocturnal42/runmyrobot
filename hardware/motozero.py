@@ -1,36 +1,48 @@
 import RPi.GPIO as GPIO
+import time
+
+Motor1A = None
+Motor1B = None
+Motor1Enable = None
+Motor2A = None
+Motor2B = None
+Motor2Enable = None
+Motor3A = None
+Motor3B = None
+Motor3Enable = None
+Motor4A = None
+Motor4B = None
+Motor4Enable = None
 
 def setup(robot_config):
+    global Motor1A = None
+    global Motor1B = None
+    global Motor1Enable = None
+    global Motor2A = None
+    global Motor2B = None
+    global Motor2Enable = None
+    global Motor3A = None
+    global Motor3B = None
+    global Motor3Enable = None
+    global Motor4A = None
+    global Motor4B = None
+    global Motor4Enable = None
+
+    Motor1A = robot_config/getint('motozero', 'Motor1A')
+    Motor1B = robot_config/getint('motozero', 'Motor1B')
+    Motor1Enable = robot_config/getint('motozero', 'Motor1Enable')
+    Motor2A = robot_config/getint('motozero', 'Motor2A')
+    Motor2B = robot_config/getint('motozero', 'Motor2B')
+    Motor2Enable = robot_config/getint('motozero', 'Motor2Enable')
+    Motor3A = robot_config/getint('motozero', 'Motor3A')
+    Motor3B = robot_config/getint('motozero', 'Motor3B')
+    Motor3Enable = robot_config/getint('motozero', 'Motor3Enable')
+    Motor4A = robot_config/getint('motozero', 'Motor4A')
+    Motor4B = robot_config/getint('motozero', 'Motor4B')
+    Motor4Enable = robot_config/getint('motozero', 'Motor4Enable')
+
     GPIO.cleanup()
     GPIO.setmode(GPIO.BCM)
-
-    # Motor1 is back left
-    # Motor1A is reverse
-    # Motor1B is forward
-    Motor1A = 24
-    Motor1B = 27
-    Motor1Enable = 5
-
-    # Motor2 is back right
-    # Motor2A is reverse
-    # Motor2B is forward
-    Motor2A = 6
-    Motor2B = 22
-    Motor2Enable = 17
-
-    # Motor3 is ?
-    # Motor3A is reverse
-    # Motor3B is forward
-    Motor3A = 23
-    Motor3B = 16
-    Motor3Enable = 12
-
-    # Motor4 is ?
-    # Motor4A is reverse
-    # Motor4B is forward
-    Motor4A = 13
-    Motor4B = 18
-    Motor4Enable = 25
 
     GPIO.setup(Motor1A,GPIO.OUT)
     GPIO.setup(Motor1B,GPIO.OUT)

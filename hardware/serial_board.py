@@ -14,7 +14,7 @@ def sendSerialCommand(ser, command):
     #s = "f"
     #print("string:", s)
     print(str(command.lower()))
-    ser.write(command.lower() + "\r\n")     # write a string
+    ser.write(command.lower().encode('utf8') + "\r\n")     # write a string
     #ser.write(s)
     ser.flush()
 
