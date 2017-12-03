@@ -22,7 +22,7 @@ except ImportError:
     motorsEnabled = False
 
 # todo: specificity is not correct, this is specific to a bot with a claw, not all motor_hat based bots
-from Adafruit_PWM_Servo_Driver import PWM
+#from Adafruit_PWM_Servo_Driver import PWM
 
 mh = None
 turningSpeedActuallyUsed = None
@@ -200,11 +200,10 @@ def setup(robot_config):
     global turnDelay
 
     GPIO.setmode(GPIO.BCM)
+    chargeIONumber = robot_config.getint('motor_hat', 'chargeIONumber')
     GPIO.setup(chargeIONumber, GPIO.IN)
-
     secondsToCharge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'charge_hours')
     secondsToDischarge = 60.0 * 60.0 * robot_config.getfloat('motor_hat', 'discharge_hours')
-    chargeIONumber = robot_config.getint('motor_hat', 'chargeIONumber')
 
     forward = json.loads(robot_config.get('motor_hat', 'forward'))
     backward = times(forward, -1)
@@ -224,8 +223,8 @@ def setup(robot_config):
         motorB = mh.getMotor(2)
 
     # Initialise the PWM device
-    pwm = PWM(0x42)
-    pwm.setPWMFreq(60)    # Set frequency to 60 Hz
+#    pwm = PWM(0x42)
+#    pwm.setPWMFreq(60)    # Set frequency to 60 Hz
     
     turningSpeedActuallyUsed = robot_config.getint('motor_hat', 'turning_speed')
     dayTimeDrivingSpeedActuallyUsed = robot_config.getint('misc', 'day_speed')
