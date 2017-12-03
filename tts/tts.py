@@ -75,7 +75,7 @@ def say(*args):
             if url_filter:
                 if re.search(urlRegExp, message):
                     exit()
-            elif user not in banned: 
+            if user not in banned: 
                 tts_module.say(message, args[1])
     
 def mute_tts():
