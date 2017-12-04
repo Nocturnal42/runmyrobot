@@ -11,11 +11,14 @@ import random
 import datetime
 import traceback
 import robot_util
-import _thread as thread
 import copy
 import argparse
 import audio_util
 
+if (sys.version_info > (3, 0)):
+    import _thread as thread
+else:
+    import thread
 
 class DummyProcess:
     def poll(self):
@@ -114,17 +117,17 @@ def getAudioPort():
 def getRobotID():
 
     url = '%s://%s/get_robot_id/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
-    response = robot_util.getWithRetry(url)
+    response = robot_util.getWithRetry(url).decode('utf-8')
     return json.loads(response)['robot_id']
 
 def getWebsocketRelayHost():
     url = '%s://%s/get_websocket_relay_host/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
-    response = robot_util.getWithRetry(url)
+    response = robot_util.getWithRetry(url).decode('utf-8')
     return json.loads(response)
 
 def getOnlineRobotSettings(robotID):
     url = 'https://%s/api/v1/robots/%s' % (apiServer, robotID)
-    response = robot_util.getWithRetry(url)
+    response = robot_util.getWithRetry(url).decode('utf-8')
     return json.loads(response)
         
 def identifyRobotId():
