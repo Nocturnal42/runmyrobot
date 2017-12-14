@@ -8,6 +8,7 @@ import atexit
 import networking
 import tts.tts as tts
 import json
+import time
 
 try:
     from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
@@ -25,6 +26,8 @@ except ImportError:
 #from Adafruit_PWM_Servo_Driver import PWM
 
 mh = None
+motorA = None
+motorB = None
 turningSpeedActuallyUsed = None
 dayTimeDrivingSpeedActuallyUsed = None
 nightTimeDrivingSpeedActuallyUsed = None
@@ -186,6 +189,8 @@ def times(lst, number):
 
 def setup(robot_config):
     global mh
+    global motorA
+    global motorB
     global turningSpeedActuallyUsed
     global dayTimeDrivingSpeedActuallyUsed
     global nightTimeDrivingSpeedActuallyUsed
@@ -227,8 +232,8 @@ def setup(robot_config):
 #    pwm.setPWMFreq(60)    # Set frequency to 60 Hz
     
     turningSpeedActuallyUsed = robot_config.getint('motor_hat', 'turning_speed')
-    dayTimeDrivingSpeedActuallyUsed = robot_config.getint('misc', 'day_speed')
-    nightTimeDrivingSpeedActuallyUsed = robot_config.getint('misc', 'night_speed')
+    dayTimeDrivingSpeedActuallyUsed = robot_config.getint('motor_hat', 'day_speed')
+    nightTimeDrivingSpeedActuallyUsed = robot_config.getint('motor_hat', 'night_speed')
 
     if robot_config.getboolean('motor_hat', 'slow_for_low_battery'):
         GPIO.add_event_detect(chargeIONumber, GPIO.BOTH)
@@ -256,49 +261,48 @@ def move( args ):
     else:
         drivingSpeedActuallyUsed = dayTimeDrivingSpeedActuallyUsed
     
-    if commandArgs.type == 'motor_hat' and motorsEnabled:
-        motorA.setSpeed(drivingSpeed)
-        motorB.setSpeed(drivingSpeed)
-        if command == 'F':
-            drivingSpeed = drivingSpeedActuallyUsed
-            for motorIndex in range(4):
-                runMotor(motorIndex, forward[motorIndex])
-            time.sleep(straightDelay)
-        if command == 'B':
-            drivingSpeed = drivingSpeedActuallyUsed
-            for motorIndex in range(4):
-                runMotor(motorIndex, backward[motorIndex])
-            time.sleep(straightDelay)
-        if command == 'L':
-            drivingSpeed = turningSpeedActuallyUsed
-            for motorIndex in range(4):
-                runMotor(motorIndex, left[motorIndex])
-            time.sleep(turnDelay)
-        if command == 'R':
-            drivingSpeed = turningSpeedActuallyUsed
-            for motorIndex in range(4):
-                runMotor(motorIndex, right[motorIndex])
-            time.sleep(turnDelay)
-        if command == 'U':
-            #mhArm.getMotor(1).setSpeed(127)
-            #mhArm.getMotor(1).run(Adafruit_MotorHAT.BACKWARD)
-            incrementArmServo(1, 10)
-            time.sleep(0.05)
-        if command == 'D':
-            #mhArm.getMotor(1).setSpeed(127)
-            #mhArm.getMotor(1).run(Adafruit_MotorHAT.FORWARD)
-            incrementArmServo(1, -10)
-            time.sleep(0.05)
-        if command == 'O':
-            #mhArm.getMotor(2).setSpeed(127)
-            #mhArm.getMotor(2).run(Adafruit_MotorHAT.BACKWARD)
-            incrementArmServo(2, -10)
-            time.sleep(0.05)
-        if command == 'C':
-            #mhArm.getMotor(2).setSpeed(127)
-            #mhArm.getMotor(2).run(Adafruit_MotorHAT.FORWARD)
-            incrementArmServo(2, 10)
-            time.sleep(0.05)
+    motorA.setSpeed(drivingSpeed)
+    motorB.setSpeed(drivingSpeed)
+    if command == 'F':
+        drivingSpeed = drivingSpeedActuallyUsed
+        for motorIndex in range(4):
+            runMotor(motorIndex, forward[motorIndex])
+        time.sleep(straightDelay)
+    if command == 'B':
+        drivingSpeed = drivingSpeedActuallyUsed
+        for motorIndex in range(4):
+            runMotor(motorIndex, backward[motorIndex])
+        time.sleep(straightDelay)
+    if command == 'L':
+        drivingSpeed = turningSpeedActuallyUsed
+        for motorIndex in range(4):
+            runMotor(motorIndex, left[motorIndex])
+        time.sleep(turnDelay)
+    if command == 'R':
+        drivingSpeed = turningSpeedActuallyUsed
+        for motorIndex in range(4):
+            runMotor(motorIndex, right[motorIndex])
+        time.sleep(turnDelay)
+    if command == 'U':
+        #mhArm.getMotor(1).setSpeed(127)
+        #mhArm.getMotor(1).run(Adafruit_MotorHAT.BACKWARD)
+        incrementArmServo(1, 10)
+        time.sleep(0.05)
+    if command == 'D':
+        #mhArm.getMotor(1).setSpeed(127)
+        #mhArm.getMotor(1).run(Adafruit_MotorHAT.FORWARD)
+        incrementArmServo(1, -10)
+        time.sleep(0.05)
+    if command == 'O':
+        #mhArm.getMotor(2).setSpeed(127)
+        #mhArm.getMotor(2).run(Adafruit_MotorHAT.BACKWARD)
+        incrementArmServo(2, -10)
+        time.sleep(0.05)
+    if command == 'C':
+        #mhArm.getMotor(2).setSpeed(127)
+        #mhArm.getMotor(2).run(Adafruit_MotorHAT.FORWARD)
+        incrementArmServo(2, 10)
+        time.sleep(0.05)
 
     turnOffMotors()
 #        if command == 'WALL':
