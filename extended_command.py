@@ -251,8 +251,8 @@ def handler(args):
 # This function checks the user sending the command, and if authorized
 # call the move handler.
 def move_auth(args):
-    user = args['user']['username']
-    anon = args['user']['anonymous']
+    user = args['user']
+    anon = args['anonymous']
     
     if anon_control == False and anon:
         exit()

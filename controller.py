@@ -321,5 +321,5 @@ if auto_wifi:
     auto_wifi_task()
 
 while True:
-    time.sleep(10)
+    time.sleep(0.5)
                                 

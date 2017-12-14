@@ -67,7 +67,7 @@ def startListenForChatServer():
 
 def onHandleAppServerConnect(*args):
     print
-    print("chat socket.io connect")
+    print("app socket.io connect")
     print
     identifyRobotID()
 
@@ -98,6 +98,23 @@ def onHandleChatReconnect(*args):
 def onHandleChatDisconnect(*args):
     print
     print("chat socket.io disconnect")
+    print
+
+def onHandleControlConnect(*args):
+    print
+    print("control socket.io connect")
+    print
+    identifyRobotID()
+
+def onHandleControlReconnect(*args):
+    print
+    print("control socket.io reconnect")
+    print
+    identifyRobotID()
+    
+def onHandleControlDisconnect(*args):
+    print
+    print("control socket.io disconnect")
     print
 
 def setupSocketIO(robot_config):
@@ -131,9 +148,12 @@ def setupSocketIO(robot_config):
 def setupControlSocket(on_handle_command):
     global controlSocketIO
     print("connecting to control socket.io")
-    controlSocketIO = SocketIO(controlHostPort['host'], controlHostPort['port'], LoggingNamespace)
+    controlSocketIO = SocketIO(controlHostPort['host'], int(controlHostPort['port']), LoggingNamespace)
     print("finished using socket io to connect to control host port", controlHostPort)
     startListenForControlServer()
+    controlSocketIO.on('connect', onHandleControlConnect)
+    controlSocketIO.on('reconnect', onHandleControlReconnect)    
+    controlSocketIO.on('disconnect', onHandleControlDisconnect)
     controlSocketIO.on('command_to_robot', on_handle_command)
     return controlSocketIO
 
