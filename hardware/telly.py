@@ -6,7 +6,7 @@ ser = None
 right_wheel_forward_speed = None
 right_wheel_backward_speed = None
 left_wheel_forward_speed = None
-right_wheel_backward_speed = None
+left_wheel_backward_speed = None
 turn_delay = None
 straight_delay = None
 led_max_brightness = None
@@ -26,24 +26,27 @@ def setup(robot_config):
     led_max_brightness = robot_config.get('telly', 'led-max-brightness')
     
     if robot_config.has_option('telly', 'right_wheel_forward_speed'):
-        right_wheel_forward_speed = robot_config.get('telly', 'right_wheel_forward_speed'))
+        right_wheel_forward_speed = robot_config.get('telly', 'right_wheel_forward_speed')
     if robot_config.has_option('telly', 'right_wheel_backward_speed'):
-        right_wheel_forward_speed = robot_config.get('telly', 'right_wheel_backward_speed'))
+        right_wheel_forward_speed = robot_config.get('telly', 'right_wheel_backward_speed')
     if robot_config.has_option('telly', 'left_wheel_forward_speed'):
-        left_wheel_forward_speed = robot_config.get('telly', 'left_wheel_forward_speed'))
+        left_wheel_forward_speed = robot_config.get('telly', 'left_wheel_forward_speed')
     if robot_config.has_option('telly', 'left_wheel_backward_speed'):
-        right_wheel_forward_speed = robot_config.get('telly', 'left_wheel_backward_speed'))
+        right_wheel_forward_speed = robot_config.get('telly', 'left_wheel_backward_speed')
 
     
     straight_delay = robot_config.getfloat('robot', 'straight_delay')
     turn_delay = robot_config.getfloat('robot', 'turn_delay')    
     
-    module = mod_utils.import_module('hardware', robot_config.get('robot', 'type'))
+    module = mod_utils.import_module('hardware', 'serial_board')
     ser = module.setup(robot_config)
 
-    sendSettings(ser, commandArgs)
+    sendSettings()
 
-def sendSettings(ser, args):
+def move(args):
+    module.move(args)
+
+def sendSettings():
 
     if right_wheel_forward_speed is not None:
         robot_util.sendSerialCommand(ser, "rwfs " + right_wheel_forward_speed)

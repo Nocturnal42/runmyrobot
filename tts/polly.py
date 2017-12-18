@@ -7,7 +7,7 @@ import random
 
 client = None
 polly = None
-random = None
+random_voice = None
 voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joanna', 'Joey', 'Justin',
              'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]             
 users = {}
@@ -29,6 +29,7 @@ def setup(robot_config):
     global robot_voice
     global users
     global hw_num
+    global random_voice
     
     owner = robot_config.get('robot', 'owner')
     owner_voice = robot_config.get('polly', 'owner_voice')
