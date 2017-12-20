@@ -23,7 +23,7 @@ def setup(robot_config):
     
     type = robot_config.get('tts', 'type')
     debug_messages = robot_config.get('misc', 'debug_messages')
-    mute_anon = robot_config.getboolean('tts', 'anon_tts')
+    mute_anon = not robot_config.getboolean('tts', 'anon_tts')
     url_filter = robot_config.getboolean('tts', 'filter_url_tts')
     
     if type != 'none':

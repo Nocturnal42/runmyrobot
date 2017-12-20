@@ -9,7 +9,7 @@ client = None
 polly = None
 random_voice = None
 voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joanna', 'Joey', 'Justin',
-             'Kendra', 'Kimberly', 'Mathew', 'Salli', 'Geraint' ]             
+             'Kendra', 'Kimberly', 'Matthew', 'Salli', 'Geraint' ]             
 users = {}
 robot_voice = None
 hw_num = None
