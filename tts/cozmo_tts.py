@@ -10,7 +10,7 @@ coz = None
 video_port = ""
 camera_id = 0
 infoServer = None
-annotated = 0
+annotated = False
 colour = False
 
 def set_colour(command, args):
@@ -29,6 +29,9 @@ def setup(robot_config):
     global camera_id
     global infoServer
     global video_port
+    global annotated
+    global colour
+    
     camera_id = robot_config.get('robot', 'camera_id')
     infoServer = robot_config.get('misc', 'info_server')
     video_port = getVideoPort()
@@ -54,6 +57,8 @@ def setup(robot_config):
 
     if robot_config.has_section('cozmo'):
         send_online_status = robot_config.getint('cozmo', 'send_online_status')
+        send_online_status = robot_config.getboolean('cozmo', 'annotated')
+        send_online_status = robot_config.getboolean('cozmo', 'colour')
     else:
         send_online_status = True
     
