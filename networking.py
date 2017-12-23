@@ -39,7 +39,8 @@ def getChatHostPort():
     return json.loads(response)
     
 def getOwnerDetails(username):
-    url = 'https://api.letsrobot.tv/api/v1/accounts/%s' % (username)
+#    url = 'https://api.letsrobot.tv/api/v1/accounts/%s' % (username)
+    url = 'https://api.letsrobot.tv/api/v1/robocasters/%s' % (username)
     response = robot_util.getWithRetry(url, secure=secure_cert).decode('utf-8')
     return json.loads(response)
     

@@ -1,6 +1,6 @@
-# TODO : Move aws_key stuff into letsrobot.conf
-
+import mod_utils
 import boto3
+from botocore.exceptions import ClientError
 from subprocess import Popen, PIPE
 import os
 import random
@@ -13,6 +13,7 @@ voices = [ 'Nicole', 'Russell', 'Amy', 'Brian', 'Emma', 'Raveena', 'Ivy', 'Joann
 users = {}
 robot_voice = None
 hw_num = None
+fallback_tts = None
 
 def new_voice(*args):
     global users
@@ -30,6 +31,7 @@ def setup(robot_config):
     global users
     global hw_num
     global random_voice
+    global fallback_tts
     
     owner = robot_config.get('robot', 'owner')
     owner_voice = robot_config.get('polly', 'owner_voice')
@@ -56,17 +58,27 @@ def setup(robot_config):
         if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add voice command
             import extended_command
             extended_command.add_command('.new_voice', new_voice)
+            
+    # Setup the fallback tts
+    fallback_tts = mod_utils.import_module('tts', 'espeak')
+    fallback_tts.setup(robot_config)
         
 def say(*args):
     message = args[0]
+    response = None
 
     if (len(args) == 1): # simple say
-        response = polly.synthesize_speech(
-            OutputFormat = 'mp3',
-            VoiceId = robot_voice,
-            Text = message,
-        )
-        print("Say : " + message)
+        try:
+            response = polly.synthesize_speech(
+                OutputFormat = 'mp3',
+                VoiceId = robot_voice,
+                Text = message,
+            )
+            print("Say : " + message)
+        except ClientError:
+            print("TTS Error! Falling back on espeak.")
+            fallback_tts.say(message)
+        
     else:
         user = args[1]['name']
 
@@ -81,19 +93,24 @@ def say(*args):
             print(user + " voice " + voice + ": " + message)
         else:
             voice = robot_voice
-    
-        response = polly.synthesize_speech(
-            OutputFormat = 'mp3',
-            VoiceId = voice,
-            Text = message,
-        )
+ 
+        try:   
+            response = polly.synthesize_speech(
+                OutputFormat = 'mp3',
+                VoiceId = voice,
+                Text = message,
+            )
+        except ClientError:
+            print("TTS Error! Falling back on espeak.")
+            fallback_tts.say(message, args[1])
 
-    if "AudioStream" in response:
+        if "AudioStream" in response:
 #        out = open ('/tmp/polly.mp3', 'w+')
 #        out.write(response['AudioStream'].read())
 #        out.close()
 #        player = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:1,1', '-q', '/tmp/polly.mp3'], stdin=PIPE, bufsize=1)
 #        os.remove('/tmp/polly.mp3')
-        play = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:%d,0' % hw_num, '-q', '-'], stdin=PIPE, bufsize=1)
-        play.communicate(response['AudioStream'].read())
+            play = Popen(['/usr/bin/mpg123-alsa', '-a', 'hw:%d,0' % hw_num, '-q', '-'], stdin=PIPE, bufsize=1)
+            play.communicate(response['AudioStream'].read())
+            
 
