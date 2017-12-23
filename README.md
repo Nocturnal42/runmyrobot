@@ -1,12 +1,13 @@
-# runmyrobot
+# LetsRobot.tv
 
-<h1> Open Robot Control Code For Connecting to LetsRobot.tv </h1>
+
+## Open Robot Control Code For Connecting to LetsRobot.tv 
 
 LetsRobot.tv is a site for interacts with other using telepresence robots. User create their own robots and add them to the site.
 https://letsrobot.tv
 
 
-<h2> Quick Install </h2>
+## Quick Install
 
 
 Copy this into the terminal, and follow the instructions.
@@ -22,9 +23,9 @@ To edit your start_robot file, put this into the terminal.
 
 ```sudo nano /home/pi/start_robot```
 
-<h2> Manual Install </h2>
+## Manual Install 
 
-<h3> Installing robot control and video scripts </h3>
+### Installing robot control and video scripts
 
 
 The RasPi will need the following things install so it can talk to your motor and talk to the internet.
@@ -75,7 +76,7 @@ sudo make install
 
 
 
-<h2> Bring you Bot to life: Programs to run on the Raspberry Pi </h2>
+## Bring you Bot to life: Programs to run on the Raspberry Pi
 
 Start by cloning the runmyrobot repository
 ```
@@ -150,7 +151,7 @@ nohup scripts/repeat_start python controller.py YOURROBOTID --type motor_hat --m
 nohup scripts/repeat_start python send_video.py YOURCAMERAID 0 &> /dev/null &
 ```
 
-<h3> Start script on boot </h3>
+## Start script on boot
 Use crontab to start the start_robot script on booting:
 
 ```
@@ -165,16 +166,16 @@ insert following line and save:
 
 That's it!
 
-<h2> How does this work </h2>
+## How does this work
 
 We use ffmpeg to stream audio and socket.io to send control messages.
 
-<h2> How to contribute </h2>
+## How to contribute
 
 The is a community project. Making your own bot? Adding your own control stuff? Cool! We'd like to hear from you.
 
 
-<h1> Hardware Compatibility </h1>
+# Hardware Compatibility
 
 Adafruit Motor Hat
 
@@ -189,9 +190,14 @@ MotoZero
 Missing something?, you can add it, open source!
 
 
-<h1> Instructions for Specific Hardward Configurations </h1>
+# Instructions for Specific Hardward Configurations
 
-<h2> GoPiGo3 </h2>
+## Cozmo
+
+For Anki Cozmo, please see the intructions [here](COZMO.md).
+
+
+## GoPiGo3
 
 For GoPiGo3, you will need to install the gopigo3 python module (which is different than older versions). It will need to be installed with the installation script from Dexter. Also, PYTHONPATH needs to be set to "/home/pi/Dexter/GoPiGo3/Software/Python"
 
@@ -202,6 +208,3 @@ sudo git clone http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiG
 sudo bash /home/pi/Dexter/GoPiGo3/Install/install.sh
 sudo reboot
 ```
-
-
-
