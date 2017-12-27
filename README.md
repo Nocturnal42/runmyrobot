@@ -6,163 +6,142 @@
 LetsRobot.tv is a site for interacts with other using telepresence robots. User create their own robots and add them to the site.
 https://letsrobot.tv
 
-
-## Quick Install
-
-
-Copy this into the terminal, and follow the instructions.
-This script has been tested on a Raspberry Pi 3, with a fresh flash of "2017-04-10-raspbian-jessie-lite".
-
-```
-sudo wget https://raw.githubusercontent.com/runmyrobot/runmyrobot/master/scripts/install.sh -O /tmp/install.sh && bash /tmp/install.sh
-```
-
-After end installtion, all the files needed should be installed and ready for use, but you still might need to change some arguments in your "/home/pi/start_robot" file, to make it suit your robot.
-
-To edit your start_robot file, put this into the terminal.
-
-```sudo nano /home/pi/start_robot```
-
-## Manual Install 
-
-### Installing robot control and video scripts
+## Installing robot control and video scripts on a Raspberry Pi
 
 
 The RasPi will need the following things install so it can talk to your motor and talk to the internet.
 
-(1) Install [motor HAT software](https://learn.adafruit.com/adafruit-dc-and-stepper-motor-hat-for-raspberry-pi/installing-software):
+1. Install python serial, gnutls, python-dev, espeak, and python-smbus:
+
+   ```
+   apt-get install python-serial python-dev libgnutls28-dev espeak python-smbus python-pip git
+   ```
 
 
-(2) Install python serial, gnutls, python-dev, espeak, and python-smbus:
+2. Install configparser and socket.io client for python:
 
-```apt-get install python-serial python-dev libgnutls28-dev espeak python-smbus python-pip git```
-
-
-(3) Install socket.io client for python:
-
-```pip install socketIO-client```
+   ```
+   pip install socketIO-client configparser
+   ```
 
 
-(4) Install alsa-lib
-```
-cd /usr/local/src 
-wget ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.25.tar.bz2 
-tar xjf alsa-lib-1.0.25.tar.bz2
-cd /usr/local/src/alsa-lib-1.0.25 
-./configure --host=arm-unknown-linux-gnueabi 
-make -j4 
-sudo make install
-```
+3. Install alsa-lib
+   ```
+   cd /usr/local/src 
+   wget ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.0.25.tar.bz2 
+   tar xjf alsa-lib-1.0.25.tar.bz2
+   cd /usr/local/src/alsa-lib-1.0.25 
+   ./configure --host=arm-unknown-linux-gnueabi 
+   make -j4 
+   sudo make install
+   ```
 
-(5) Install x264
-```
-cd /usr/local/src
-git clone git://git.videolan.org/x264
-cd x264
-./configure --host=arm-unknown-linux-gnueabi --enable-static --disable-opencl
-make -j4
-sudo make install
-```
+4. Install x264
+   ```
+   cd /usr/local/src
+   git clone git://git.videolan.org/x264
+   cd x264
+   ./configure --host=arm-unknown-linux-gnueabi --enable-static --disable-opencl
+   make -j4
+   sudo make install
+   ```
 
-(6) Install FFmpeg
-```
-cd /usr/local/src
-git clone https://github.com/FFmpeg/FFmpeg.git
-cd FFmpeg
-./configure --arch=armel --target-os=linux --enable-gpl --enable-libx264 --enable-nonfree --enable-gnutls --extra-libs=-ldl
-make -j4
-sudo make install
-```
+5. Install FFmpeg
+   ```
+   cd /usr/local/src
+   git clone https://github.com/FFmpeg/FFmpeg.git
+   cd FFmpeg
+   ./configure --arch=armel --target-os=linux --enable-gpl --enable-libx264 --enable-nonfree --enable-gnutls --extra-libs=-ldl
+   make -j4
+   sudo make install
+   ```
 
 
+## Bring your Bot to life: Programs to run on the Raspberry Pi
 
-## Bring you Bot to life: Programs to run on the Raspberry Pi
+1. Start by cloning the LetsRobot repository
+   ```
+   cd ~
+   git clone https://github.com/Nocturnal42/runmyrobot
+   cd runmyrobot
+   ```
 
-Start by cloning the runmyrobot repository
-```
-cd ~
-git clone https://github.com/runmyrobot/runmyrobot
-cd runmyrobot
-```
+2. Go to new robot page to create a robot. If you already have one, go to manage robots. There you'll find your Robot ID and Camera ID.
 
-Go to new robot page to create a robot. If you already have one, got to manage robots. There you'll find your Robot ID and Camera ID.
+3. These two scripts need to be running in the background to bring your robot to life: controller.py and send_video.py. Here are instructions about how to start them. Copy the 'start_robot' Script from runmyrobot/Scripts to the pi home folder
 
-These two scripts need to be running in the background to bring your robot to life: controller.py, send_video.py. Here are instructions about how to start them.
+   ```
+   cp ~/runmyrobot/scripts/start_robot ~/
+   ```
 
-Copy the 'start_robot' Script from runmyrobot/Scripts to the pi home folder
+4. Edit the script so you can adjust the settings for controller.py and send_video.py.  
+   ```
+   nano ~/start_robot
+   ```  
+   Change YOURROBOTID and YOURCAMERAID to your robots robot ID and camera ID. You are provided with both IDs when you create a new bot on the website in step 2.
 
-```cp ~/runmyrobot/scripts/start_robot ~/```
 
-Edit the script so you can adjust some settings for controller.py and send_video.py:
+5. Copy letsrobot.sample.conf to letsrobot.conf
 
-```nano ~/start_robot```
+   ```
+   cp letsrobot.sample.conf letsrobot.conf
+   ```
 
-Edit the YOURROBOTID to your robot ID.
+## Configure the controller
 
-Edit the YOURCAMERAID to your camera ID.
+1. Edit the letsrobot.conf file created in the previous section.
+   ```
+   nano letsrobot.conf
+   ```
+2. Configure the [robot] section
+   * owner should be the username you have registered the robot under on the LetsRobot site.
+   * robot_id should be the robot ID for your robot, obtained in step 2 of the Bring your Bot to life section.
+   * camera_id should be the camera ID for your robot, obtained in same step as robot ID.
+   * turn_delay is only used by the motor_hat, mdd10 and telly. This changes how long your bot turns for. I suggest you leave this at the default value until after you bot is moving.
+   * straight_delay is only used by the motor_hat, mdd10 and telly. This changes how long your bot turns for. I suggest you leave this at the default value until after you bot is moving.
+   * type should be the hardware type for the motor controller of your bot. Available types are currently.
+      * adafruit_pwm
+      * cozmo
+      * gopigo2
+      * gopigo3
+      * l298n
+      * maestro-servo
+      * max7219
+      * mc33926
+      * mdd10
+      * motor_hat
+      * motozero
+      * none
+      * owi_arm
+      * pololu
+      * serial_board
+      * telly
+   * Configure your hardwares section. Each hardware type can have their own section it the controller. Look through the file for a section named the same as your hardware controller. If the section exists, read through it and adjust the variable as required.
 
-You are getting both IDs when you are creating a new bot on the website.
+3. Configure the [tts] section 
+   * tts_volume This is the volume level you want your bot to start with.
+   * anon_tts This allows you to enable or disable anonymous users access to your bots TTS features.
+   * filter_url_tts This option allows URLs pasted into chat to be blocked from the TTS function.
+   * ext_chat This enables or disables the extended chat functions.
+   * hw_hum This is the ALSA hardware number for your pi. 0 is the first sound card and should work for most bots.
+   * type should be the type of TTS software you are using. The currently supported TTS types are. espeak was installed in the previous steps, and makes a good default tts.
+      * espeak
+      * fesitval
+      * Amazon Polly
+      * cozmo_tts
 
-The second parameter on send_video.py 0 is assuming you have one camera plugged into your Pi and you are using it, which is usually the case.
+## Start scripts on boot
+1. Use crontab to start the start_robot script on booting:
 
-There are more parameter possible for controller.py:
+   ```
+   crontab -e
+   ```
 
-```robot_id```
+2. insert following line and save:
 
-Your Robot ID. Required
-
-```--env prod | dev```
-
-Environment for example dev or prod | default='prod'
-
-```--type motor_hat | serial | l298n | motozero```
-
-What type of motor controller should be used | default='motor_hat'
-
-```--serial-device /dev/ttyACM0```
-
-Serial device | default='/dev/ttyACM0'
-
-```--male```
-
-Use TTS with a male voice
-
-```--female```
-
-Use TTS with a female voice
-
-```--voice-number 1```
-
-What voice should be used | default=1
-
-```--led max7219```
-
-What LEDs should be used (if any) | default=none
-
-```--ledrotate 180```
-
-Rotates the LED matrix | default=none
-
-Example start_robot:
-
-```
-cd /home/pi/runmyrobot
-nohup scripts/repeat_start python controller.py YOURROBOTID --type motor_hat --male --voice-number 1 --led max7219 --ledrotate 180 &> /dev/null &
-nohup scripts/repeat_start python send_video.py YOURCAMERAID 0 &> /dev/null &
-```
-
-## Start script on boot
-Use crontab to start the start_robot script on booting:
-
-```
-crontab -e
-```
-
-insert following line and save:
-
-```
-@reboot /bin/bash /home/pi/start_robot
-```
+   ```
+   @reboot /bin/bash /home/pi/start_robot
+   ```
 
 That's it!
 
@@ -176,26 +155,50 @@ The is a community project. Making your own bot? Adding your own control stuff? 
 
 
 # Hardware Compatibility
+---
+The following hardware is supported.
 
-Adafruit Motor Hat
+* Adafruit Motor Hat
+* Adafruit PWM / Servo Hat
+* Anki Cozmo
+* GoPiGo 2
+* GoPiGo 3
+* L298N Dual Motor Controller
+* Pololu Maestro Servo Controller (experimental)
+* MAX7219 SPI Led Driver
+* Pololu Dual MC33926 Motor Driver (experimental)
+* Pololu DRV8835 Dual Motor Driver
+* Cytron MDD10 10 Amp Motor Driver
+* MotoZero 4 Motor Controller
+* OWI 535 Robotic Arm (USB controller)
+* Serial Based controllers (or Arduinos)
 
-Serial Port based commands
+Missing something?, you can add it, open source! Instructions for adding new hardware can be found [here.](EXTENDING_CONTROLLER.md)
 
-GoPiGo
+## Chat Commands
+When ext_chat is enabled, the following chat commands are available. To use, just type them into the chat box on your bots page. These chat commands have no effect on how the site behaves, they only affect the bot. There are some functions that duplicate functions on the site. These changes are not saved and are lots on reboot.
 
-L298N
+* `.devmode X` Set dev mode. In dev mode, only the owner can drive. If demode is set to mods, your local mods can also drive [on|off|mods].
+* `.anon control X` Sets if anonymous users can drive your bot [on|off].
+* `.anon tts X` Sets if anonymous users messages are passed to TTS [on|of].
+* `.anon X` Sets both anonymous control and tts access [on|off].
+* `.tts X` Mute the bots TTS [mute|unmute]
+* `.ban NAME` Ban user NAME from controlling your bots
+* `.unban NAME` remove user NAME from the ban list
+* `.timeout NAME` Timeout user NAME from controlling your bots for 5 minutes
+* `.untimout NAME` remove user NAME from the timeout list.
+* `.brightness X` set the camera brightness [0..255]
+* `.contrast X` set the camera contrast [0..255]
+* `.saturation X` set the camera saturation [0..255]
 
-MotoZero
+Hardware modules can have their own hardware specific TTS commands.
 
-Missing something?, you can add it, open source!
-
-
-# Instructions for Specific Hardward Configurations
+# Instructions for Specific Hardware Configurations
 
 ## Cozmo
 
-For Anki Cozmo, please see the intructions [here](COZMO.md).
-
+For Anki Cozmo on Mac or Linux, please see the intructions [here](COZMO_MAC.md).
+For Windows instructions, please see the instructions [here](COZMO_WIN.md).
 
 ## GoPiGo3
 
@@ -203,8 +206,24 @@ For GoPiGo3, you will need to install the gopigo3 python module (which is differ
 
 Refer to this:
 https://github.com/DexterInd/GoPiGo3
-```
-sudo git clone http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
-sudo bash /home/pi/Dexter/GoPiGo3/Install/install.sh
-sudo reboot
-```
+   ```
+   sudo git clone http://www.github.com/DexterInd/GoPiGo3.git /home/pi/Dexter/GoPiGo3
+   sudo bash /home/pi/Dexter/GoPiGo3/Install/install.sh
+   sudo reboot
+   ```
+
+## Adafruit Motor Hat
+
+Install [motor HAT software](https://learn.adafruit.com/adafruit-dc-and-stepper-motor-hat-for-raspberry-pi/installing-software):
+
+## Adafruit PWM / Servo Hat
+Install [PWM / Servo hat software](https://learn.adafruit.com/adafruit-16-channel-pwm-servo-hat-for-raspberry-pi/using-the-python-library)
+
+## Pololu Maestro Servo Controller
+Install [Maestro Servon controller library]( https://github.com/FRC4564/Maestro) into the hardware/ subdirectory.
+
+## Pololu DRV8835 Motor Driver
+Install [DRV8835 Motor Driver library](https://github.com/pololu/drv8835-motor-driver-rpi)
+
+## Pololu MC33926 Motor Driver
+Install [MC33926 Motor Driver library](https://github.com/pololu/dual-mc33926-motor-driver-rpi)

@@ -2,6 +2,7 @@
 Host Anki Cozmo on LetsRobot.tv
 
 ## Pre-setup
+
 ### install socketIO-client for python3
 pip3 install socketIO-client configparser
 
@@ -14,12 +15,6 @@ Setup the Cozmo SDK on your computer using their instructions:
 Clone Nocturnal's fork of the runmyrobot scripts:
 
 * git clone https://github.com/Nocturnal42/runmyrobot.git
-
-Copy the files from this repo to the appropriate directories:
-
-* Copy hardware/cozmo.py to runmyrobot/hardware
-
-* Copy tts/cozmo_tts.py to runmyrobot/tts
 
 Edit runmyrobot/letsrobot.sample.conf:
 
@@ -190,6 +185,18 @@ Please see [Customizing Your UI](https://letsrobot.readme.io/docs/customizing-yo
    }
 ]
 ```
+
+## Cozmo Chat Commands
+In addition to the standard chat commands, Cozmo has several specific chat commands available to the owner. You can type these into the chat box on the robot page.
+
+* `.anim NAME` this will play the NAME animation.
+* `.forward_speed ###` this will allow you to adjust how fast Cozmo moves forward / backwards.
+* `.turn_speed ###` this will adjust how far Cozmo turns left and right.
+* `.vol ###` This turns Cozmos volume up or down [0...100].
+* `.charge X' If Cozmo is on the dock, force the changin g state. If Cozmo is off the dock, mark the charging state to start as soon as Cozmo docks [on|off].
+* `.stay X` Set Cozmo to stay locked in the dock, regardless of charge state [on|off].
+* `.annotate` Enable  / Disable the annotated view, to see what Cozmo is seeing.
+* `.color` or `.colour` Enable / Disable colour. Colour reduces the resolution of the video.
 
 ## Note for audio streaming on MacOS:
 
