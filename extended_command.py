@@ -65,8 +65,8 @@ def setup(robot_config):
     owner = robot_config.get('robot', 'owner')
     v4l2_ctl = robot_config.get('misc', 'v4l2-ctl')
     
-#    mods = networking.getOwnerDetails(owner)['moderators']
-    mods = networking.getOwnerDetails(owner)['robocaster']['moderators']
+    mods = networking.getOwnerDetails(owner)['moderators']
+#    mods = networking.getOwnerDetails(owner)['robocaster']['moderators']
     print("Moderators :", mods)
 
 # check if the user is the owner or moderator, 0 for not, 1 for moderator, 2 for owner
