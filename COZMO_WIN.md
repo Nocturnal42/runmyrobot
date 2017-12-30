@@ -11,7 +11,7 @@ Download and setup the latest version of python3 for windows.
 
 ### install ffmpeg
 
-Download the latest version of ffmpeg for windows.
+Download the latest version of ffmpeg for windows. Click the windows icon under more download options, then click the windows builds link. Then click to select 32/64 bit and click download build.
 
 * https://www.ffmpeg.org/download.html#build-windows
 
