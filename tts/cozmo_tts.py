@@ -57,8 +57,8 @@ def setup(robot_config):
 
     if robot_config.has_section('cozmo'):
         send_online_status = robot_config.getint('cozmo', 'send_online_status')
-        send_online_status = robot_config.getboolean('cozmo', 'annotated')
-        send_online_status = robot_config.getboolean('cozmo', 'colour')
+        annotated = robot_config.getboolean('cozmo', 'annotated')
+        colour = robot_config.getboolean('cozmo', 'colour')
     else:
         send_online_status = True
     

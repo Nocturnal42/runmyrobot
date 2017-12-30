@@ -124,7 +124,7 @@ def setup(robot_config):
         volume = robot_config.getint('cozmo', 'volume')
         charge_high = robot_config.getfloat('cozmo', 'charge_high')
         charge_low = robot_config.getfloat('cozmo', 'charge_low')
-        stay_on_dock = robot_config.getfloat('cozmo', 'stay_on_dock')
+        stay_on_dock = robot_config.getboolean('cozmo', 'stay_on_dock')
 
     if robot_config.getboolean('tts', 'ext_chat'): #ext_chat enabled, add motor commands
         extended_command.add_command('.anim', play_anim)

@@ -203,7 +203,7 @@ In addition to the standard chat commands, Cozmo has several specific chat comma
 * `.forward_speed ###` this will allow you to adjust how fast Cozmo moves forward / backwards.
 * `.turn_speed ###` this will adjust how far Cozmo turns left and right.
 * `.vol ###` This turns Cozmos volume up or down [0...100].
-* `.charge X' If Cozmo is on the dock, force the changin g state. If Cozmo is off the dock, mark the charging state to start as soon as Cozmo docks [on|off].
+* `.charge X` If Cozmo is on the dock, force the changin g state. If Cozmo is off the dock, mark the charging state to start as soon as Cozmo docks [on|off].
 * `.stay X` Set Cozmo to stay locked in the dock, regardless of charge state [on|off].
 * `.annotate` Enable  / Disable the annotated view, to see what Cozmo is seeing.
 * `.color` or `.colour` Enable / Disable colour. Colour reduces the resolution of the video.
@@ -223,5 +223,5 @@ Edit send_video.py and locate the line that starts with 'audioCommandLine = ', c
 
 On the line you just uncommented, find the part that reads 'TOSHIBA Web Camera - HD' and replace it with the audio device name you found earlier.
 
-Save the changes and execute python send_video.py YOURCAMERAID 0 --no-camera
+Save the changes and execute python send_video.py YOURCAMERAID 0 --no-camera, replace YOURCAMERAID with the camera id for your robot.
 
