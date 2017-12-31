@@ -188,7 +188,10 @@ def setupAppSocket(on_handle_exclusive_control):
 
 def sendChargeState(charging):
     chargeState = {'robot_id': robot_id, 'charging': charging}
-    appServerSocketIO.emit('charge_state', chargeState)
+    try:
+        appServerSocketIO.emit('charge_state', chargeState)
+    except AttributeError:
+        print("Error: Can't update server on charge state, no app socket")
     print("charge state:", chargeState)
 
 
@@ -199,7 +202,7 @@ def ipInfoUpdate():
 def identifyRobotID():
     """tells the server which robot is using the connection"""
     print("sending identify robot id messages")
-    if not no_chat_server:
+    if not no_chat_server and not chatSocket == None:
         chatSocket.emit('identify_robot_id', robot_id);
     if not appServerSocketIO == None:
         appServerSocketIO.emit('identify_robot_id', robot_id);
