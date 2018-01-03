@@ -3,6 +3,7 @@ import os
 import networking
 import tts.tts as tts
 import schedule
+import robot_util
 
 # TODO 
 # If I pull the send_video stuff into controller, the ability to restart the ffmpeg process would
@@ -50,20 +51,31 @@ import schedule
 #/untimeout username
 
 move_handler = None
-mods=[]
 dev_mode = None
 dev_mode_mods = False
 anon_control = True
 owner = None
 v4l2_ctl = None
+robot_id = None
+api_key = None
 banned=[]
+mods=[]
 
 def setup(robot_config):
     global owner
     global v4l2_ctl
+    global robot_id
+    global api_key
+    global buttons_json
     
     owner = robot_config.get('robot', 'owner')
     v4l2_ctl = robot_config.get('misc', 'v4l2-ctl')
+    robot_id = robot_config.get('robot', 'robot_id')
+
+    if robot_config.has_option('robot', 'api_key'):
+        api_key = robot_config.get('robot', 'api_key')
+        if api_key == "":
+            api_key = None
     
     mods = networking.getOwnerDetails(owner)['moderators']
 #    mods = networking.getOwnerDetails(owner)['robocaster']['moderators']
@@ -78,7 +90,6 @@ def is_authed(user):
     else:
         return(0)
 
-
 # add a new command handler, this will also allow for overriding existing ones.
 def add_command(command, function):
     global commands
@@ -92,15 +103,19 @@ def anon_handler(command, args):
             if command[1] == 'on':
                 anon_control = True
                 tts.unmute_anon_tts()
+                robot_util.setAnonControl(True, robot_id, api_key)
             elif command[1] == 'off':
                 anon_control = False
                 tts.mute_anon_tts()
+                robot_util.setAnonControl(False, robot_id, api_key)
             elif len(command) > 3:
                 if command[1] == 'control':
                     if command[2] == 'on':
                         anon_control = True
+                        robot_util.setAnonControl(True, robot_id, api_key)
                     elif command[2] == 'off':
                         anon_control = False
+                        robot_util.setAnonControl(False, robot_id, api_key)
                 elif command[1] == 'tts':
                     if command[2] == 'on':
                         tts.unmute_anon_tts()
@@ -161,6 +176,16 @@ def untimeout_handler(command, args):
                 print(user = " removed from timeout list")
                 tts.unmute_user_tts(user)            
     
+
+def public_mode_handler(command, args):
+    if len(command) > 1:
+        if api_key != None:
+            if is_authed(args['name']) == 2: # Owner
+                if command[1] == 'on':
+                    robot_util.setAllowed('roboempress', robot_id, api_key)
+                    robot_util.setPrivateMode(True, robot_id, api_key)
+                elif command[1] == 'off':
+                    robot_util.setPrivateMode(False, robot_id, api_key)
     
 def devmode_handler(command, args):
     global dev_mode
@@ -171,8 +196,12 @@ def devmode_handler(command, args):
             if command[1] == 'on':
                 dev_mode = True
                 dev_mode_mods = False
+                if api_key != None:
+                    robot_util.setDevMode(True, robot_id, api_key)
             elif command[1] == 'off':
                 dev_mode = False
+                if api_key != None:
+                    robot_util.setDevMode(False, robot_id, api_key)
             elif command[1] == 'mods':
                 dev_mode = True
                 dev_mode_mods = True
@@ -183,9 +212,13 @@ def mic_handler(command, args):
     if is_authed(args['name']) == 1: # Owner
         if len(command) > 1:
             if command[1] == 'mute':
+                if api_key != None:
+                    robot_util.setMicEnabled(True, robot_id, api_key)
                 # Mic Mute
                 return
             elif command[1] == 'unmute':
+                if api_key != None:
+                    robot_util.setMicEnabled(False, robot_id, api_key)
                 # Mic Unmute
                 return
 
@@ -203,6 +236,39 @@ def tts_handler(command, args):
             elif command[1] == 'vol':
                 # TTS int volume command
                 return
+
+def global_chat_hander(command, args):
+    if len(command) > 1:
+        if api_key != None:
+            if is_authed(args['name']) == 2: # Owner
+                if command[1] == 'on':
+                    robot_util.setGlobalChat(False, robot_id, api_key)
+                    return
+                elif command[1] == 'off':
+                    robot_util.setGlobalChat(True, robot_id, api_key)
+                    return
+
+def word_filter_hander(command, args):
+    if len(command) > 1:
+        if api_key != None:
+            if is_authed(args['name']) == 2: # Owner
+                if command[1] == 'on':
+                    robot_util.setWordFilter(True, robot_id, api_key)
+                    return
+                elif command[1] == 'off':
+                    robot_util.setWordFilter(False, robot_id, api_key)
+                    return
+
+def show_exclusive_hander(command, args):
+    if len(command) > 1:
+        if api_key != None:
+            if is_authed(args['name']) == 2: # Owner
+                if command[1] == 'on':
+                    robot_util.setShowExclusive(False, robot_id, api_key)
+                    return
+                elif command[1] == 'off':
+                    robot_util.setShowExclusive(True, robot_id, api_key)
+                    return
 
 def brightness(command, args):
     if len(command) > 1:
@@ -233,12 +299,16 @@ commands={    '.anon'       :    anon_handler,
               '.devmode'    :    devmode_handler,
 	            '.mic'        :    mic_handler,
 	            '.tts'        :    tts_handler,
+	          '.global_chat':    global_chat_hander,
+              '.public'    :    public_mode_handler,
+              '.show_exclusive':     show_exclusive_hander,
+              '.word_filter':    word_filter_hander,
               '.brightness' :    brightness,
               '.contrast'   :    contrast,    
               '.saturation' :    saturation
 	        }
 
-def handler(args):  
+def handler(args):
     command = args['message']
 # TODO : This will not work with robot names with spaces, update it to split on ']'
 # [1:]
@@ -257,7 +327,7 @@ def move_auth(args):
     
     if anon_control == False and anon:
         exit()
-    elif dev_mode_mods: 
+    elif dev_mode_mods:
         if is_authed(user):
             move_handler(args)
         else:

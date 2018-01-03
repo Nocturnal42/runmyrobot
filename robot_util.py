@@ -3,10 +3,14 @@ import time
 import traceback
 import ssl
 import sys
+import json
+
 if (sys.version_info > (3, 0)):
     import urllib.request as urllib2
+    from urllib.error import HTTPError
 else:
     import urllib2
+    from urllib2 import HTTPError
 
 def getWithRetry(url, secure=True):
 
@@ -27,3 +31,72 @@ def getWithRetry(url, secure=True):
             time.sleep(2)
 
     return response
+
+server_panels = '[{"button_panels":[{"button_panel_label": "movement controls","buttons": [{"label": "Left", "command": "L"}, {"label": "Right", "command": "R"}, {"label": "Forward", "command": "F"}, {"label": "Backward","command": "B"}]}]}]'
+
+# This function passes data to the server api to update the robot settings.
+def sendRobotSettings(data, robot_id, api_key):
+    if not api_key == "":
+        req = urllib2.Request('https://api.letsrobot.tv/api/v1/robots/%s' % robot_id, json.dumps(data).encode('utf-8') )
+        req.add_header('Authorization', 'Bearer %s' % api_key)
+        req.add_header('Content-Type', 'application/json')
+        try:
+            f = urllib2.urlopen(req)
+        except HTTPError:
+            print(api_key)
+            print("Unable to update robot config on server! check API key")
+        response = f.read()
+        f.close()
+        print(response)
+
+# This function allows you to set multiple values at once.
+def updateRobotSettings(robot_id, api_key, **kwargs ):
+    data = {}
+    if (sys.version_info > (3, 0)):
+        for key, value in kwargs.items():
+            data[key] = value
+    else:
+        for key, value in kwargs.iteritems():
+            data[key] = value
+
+    sendRobotSettings(data, robot_id, api_key)
+
+def setPrivateMode(mode, robot_id, api_key):
+    data = {}
+    data['public'] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setDevMode(mode, robot_id, api_key):
+    data = {}
+    data["dev_mode"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setAnonControl(mode, robot_id, api_key):
+    data = {}
+    data["anonymous_control"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setGlobalChat(mode, robot_id, api_key):
+    data = {}
+    data["non_global_chat"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setWordFilter(mode, robot_id, api_key):
+    data = {}
+    data["profanity_filter"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setShowExclusive(mode, robot_id, api_key):
+    data = {}
+    data["no_exclusive_control_button"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setTTSMute(mode, robot_id, api_key):
+    data = {}
+    data["mute_text-to-speech"] = mode
+    sendRobotSettings(data, robot_id, api_key)
+
+def setMicEnabled(mode, robot_id, api_key):
+    data = {}
+    data["mic_enabled"] = mode
+    sendRobotSettings(data, robot_id, api_key)

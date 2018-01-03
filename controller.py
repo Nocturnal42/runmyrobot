@@ -81,18 +81,6 @@ robot_config.set('tts', 'ext_chat', str(commandArgs.ext_chat_command))
 robot_config.set('misc', 'secure_cert', str(commandArgs.secure_cert))
 robot_config.set('misc', 'debug_messages', str(commandArgs.debug_messages))
 
-# get command line args to reprogram telly? 
-# TODO : Find out if these do something like adjust eeprom, and if so belong
-# here or can be safely set in letsrobot.conf
-if commandArgs.right_wheel_forward_speed is not None:
-    robot_config.set('telly', 'right_wheel_forward_speed', str(commandArgs.right_wheel_forward_speed))
-if commandArgs.right_wheel_backward_speed is not None:
-    robot_config.set('telly', 'right_wheel_backward_speed', str(commandArgs.right_wheel_backward_speed))
-if commandArgs.left_wheel_forward_speed is not None:
-    robot_config.set('telly', 'left_wheel_forward_speed', str(commandArgs.left_wheel_forward_speed))
-if commandArgs.left_wheel_backward_speed is not None:
-    robot_config.set('telly', 'left_wheel_backward_speed', str(commandArgs.left_wheel_backward_speed))
-
 # set variables pulled from the config
 robotID = commandArgs.robot_id
 infoServer = commandArgs.info_server
