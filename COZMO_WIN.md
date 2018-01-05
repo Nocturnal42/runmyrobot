@@ -211,8 +211,6 @@ In addition to the standard chat commands, Cozmo has several specific chat comma
 
 ## Note for audio streaming:
 
-WARNING: Audio does not currently function properly under windows, use this at your own peril.
-
 To stream audio you will need to have a microphone or webcam with microphone attached to your computer. First you need to determine the device name for your microphone.
 
 c:\ffmpeg\bin\ffmpeg.exe -list_devices true -f dshow -i dummy

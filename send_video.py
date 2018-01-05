@@ -189,7 +189,8 @@ def startAudioCaptureLinux():
     audioCommandLine = '/usr/local/bin/ffmpeg -f alsa -ar 44100 -ac %d -i hw:%d -f mpegts -codec:a mp2 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (robotSettings.mic_channels, audioDevNum, audioHost, audioPort, robotSettings.stream_key)
 
 # Windows command
-#    audioCommandLine = 'c:/ffmpeg/bin/ffmpeg.exe -f dshow -ar 44100 -ac %d -i audio="%s" -f mpegts -codec:a mp2 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (robotSettings.mic_channels, 'TOSHIBA Web Camera - HD', audioHost, audioPort, robotSettings.stream_key)
+#    audioCommandLine = 'c:/ffmpeg/bin/ffmpeg.exe -f dshow -ar 44100 -ac %d -i audio="%s" -f mpegts -codec:a libtwolame -audio_buffer_size 250 -b:a 32k -muxdelay 0.001 http://%s:%s/%s/640/480/' % (robotSettings.mic_channels, 'TOSHIBA Web Camera - HD', audioHost, audioPort, robotSettings.stream_key)
+
     print (audioCommandLine)
     return subprocess.Popen(shlex.split(audioCommandLine))
 
