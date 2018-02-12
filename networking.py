@@ -27,6 +27,7 @@ controlSocketIO = None
 chatSocket = None
 no_chat_server = None
 secure_cert = None
+debug_messages = None
 
 def getControlHostPort():
     url = 'https://%s/get_control_host_port/%s' % (infoServer, robot_id)
@@ -47,15 +48,27 @@ def getOwnerDetails(username):
 
 def waitForAppServer():
     while True:
-        appServerSocketIO.wait(seconds=1)
+        try:
+            appServerSocketIO.wait(seconds=1)
+        except AttributeError:
+            if debug_messages:
+                print("Warning: App Server Socket not connected.");
 
 def waitForControlServer():
     while True:
-        controlSocketIO.wait(seconds=1)        
+        try:
+            controlSocketIO.wait(seconds=1)        
+        except AttributeError:
+            if debug_messages:
+                print("Warning: Control Server Socket not connected.");
 
 def waitForChatServer():
     while True:
-        chatSocket.wait(seconds=1)        
+        try:
+            chatSocket.wait(seconds=1)        
+        except AttributeError:
+            if debug_messages:
+                print("Warning: Chat Server Socket not connected.");
         
 def startListenForAppServer():
    thread.start_new_thread(waitForAppServer, ())
@@ -67,34 +80,38 @@ def startListenForChatServer():
    thread.start_new_thread(waitForChatServer, ())
 
 def onHandleAppServerConnect(*args):
-    print
-    print("app socket.io connect")
-    print
-    identifyRobotID()
+    identifyRobotID()    
+    if debug_messages:
+        print
+        print("app socket.io connect")
+        print
 
 
 def onHandleAppServerReconnect(*args):
-    print
-    print("app server socket.io reconnect")
-    print
-    identifyRobotID()    
+    identifyRobotID()
+    if debug_messages:
+        print
+        print("app server socket.io reconnect")
+        print
     
-def onHandleAppServerDisconnect(*args):
+def onHandleAppServerDisconnect(*args):    
     print
     print("app server socket.io disconnect")
     print
  
 def onHandleChatConnect(*args):
-    print
-    print("chat socket.io connect")
-    print
     identifyRobotID()
+    if debug_messages:
+        print
+        print("chat socket.io connect")
+        print
 
 def onHandleChatReconnect(*args):
-    print
-    print("chat socket.io reconnect")
-    print
     identifyRobotID()
+    if debug_messages:
+        print
+        print("chat socket.io reconnect")
+        print
     
 def onHandleChatDisconnect(*args):
     print
@@ -102,16 +119,18 @@ def onHandleChatDisconnect(*args):
     print
 
 def onHandleControlConnect(*args):
-    print
-    print("control socket.io connect")
-    print
-    identifyRobotID()
+    identifyRobotID()    
+    if debug_messages:
+        print
+        print("control socket.io connect")
+        print
 
 def onHandleControlReconnect(*args):
-    print
-    print("control socket.io reconnect")
-    print
     identifyRobotID()
+    if debug_messages:
+        print
+        print("control socket.io reconnect")
+        print
     
 def onHandleControlDisconnect(*args):
     print
@@ -125,8 +144,9 @@ def setupSocketIO(robot_config):
     global robot_id
     global no_chat_server
     global secure_cert
+    global debug_messages
 
-    debug_messages = robot_config.get('misc', 'debug_messages') 
+    debug_messages = robot_config.getboolean('misc', 'debug_messages') 
     robot_id = robot_config.getint('robot', 'robot_id')
     infoServer = robot_config.get('misc', 'info_server')
     no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
@@ -134,7 +154,6 @@ def setupSocketIO(robot_config):
     
     controlHostPort = getControlHostPort()
     chatHostPort = getChatHostPort()
-
     schedule.repeat_task(60, identifyRobot_task)
     
     if debug_messages:   
@@ -148,13 +167,15 @@ def setupSocketIO(robot_config):
 
 def setupControlSocket(on_handle_command):
     global controlSocketIO
-    print("connecting to control socket.io")
+    if debug_messages:
+        print("Connecting socket.io to control host port", controlHostPort)
     controlSocketIO = SocketIO(controlHostPort['host'], int(controlHostPort['port']), LoggingNamespace)
-    print("finished using socket io to connect to control host port", controlHostPort)
+    print("Connected to control socket.io")
     startListenForControlServer()
     controlSocketIO.on('connect', onHandleControlConnect)
     controlSocketIO.on('reconnect', onHandleControlReconnect)    
-    controlSocketIO.on('disconnect', onHandleControlDisconnect)
+    if debug_messages:
+        controlSocketIO.on('disconnect', onHandleControlDisconnect)
     controlSocketIO.on('command_to_robot', on_handle_command)
     return controlSocketIO
 
@@ -162,28 +183,32 @@ def setupChatSocket(on_handle_chat_message):
     global chatSocket
     
     if not no_chat_server:
-        print("connecting to chat socket.io")
+        if debug_messages:
+            print('Connecting socket.io to chat host port', chatHostPort)
         chatSocket = SocketIO(chatHostPort['host'], chatHostPort['port'], LoggingNamespace)
-        print('finished using socket io to connect to chat ', chatHostPort)
+        print("Connected to chat socket.io")
         startListenForChatServer()
         chatSocket.on('chat_message_with_name', on_handle_chat_message)
         chatSocket.on('connect', onHandleChatConnect)
         chatSocket.on('reconnect', onHandleChatReconnect)    
-        chatSocket.on('disconnect', onHandleChatDisconnect)
+        if debug_messages:
+            chatSocket.on('disconnect', onHandleChatDisconnect)
         return chatSocket
     else:
         print("chat server connection disabled")
 
 def setupAppSocket(on_handle_exclusive_control):
     global appServerSocketIO
-    print("connecting to app server socket.io")
+    if debug_messages:
+        print("Connecting to socket.io to app server")
     appServerSocketIO = SocketIO('letsrobot.tv', 8022, LoggingNamespace)
-    print("finished connecting to app server")
+    print("Connected to app server")
     startListenForAppServer()
     appServerSocketIO.on('exclusive_control', on_handle_exclusive_control)
     appServerSocketIO.on('connect', onHandleAppServerConnect)
     appServerSocketIO.on('reconnect', onHandleAppServerReconnect)
-    appServerSocketIO.on('disconnect', onHandleAppServerDisconnect)
+    if debug_messages:
+        appServerSocketIO.on('disconnect', onHandleAppServerDisconnect)
     return appServerSocketIO
 
 def sendChargeState(charging):
@@ -191,7 +216,8 @@ def sendChargeState(charging):
     try:
         appServerSocketIO.emit('charge_state', chargeState)
     except AttributeError:
-        print("Error: Can't update server on charge state, no app socket")
+        if debug_messages:
+            print("Error: Can't update server on charge state, no app socket")
     print("charge state:", chargeState)
 
 
@@ -201,7 +227,8 @@ def ipInfoUpdate():
 
 def identifyRobotID():
     """tells the server which robot is using the connection"""
-    print("sending identify robot id messages")
+    if debug_messages:
+        print("Sending identify robot id message")
     if not no_chat_server and not chatSocket == None:
         chatSocket.emit('identify_robot_id', robot_id);
     if not appServerSocketIO == None:
