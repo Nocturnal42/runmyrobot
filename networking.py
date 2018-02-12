@@ -7,14 +7,15 @@ import schedule
 import platform
 import subprocess
 import tts.tts as tts
+import watchdog
 
 from socketIO_client import SocketIO, LoggingNamespace
 
 if (sys.version_info > (3, 0)):
-    import _thread as thread
+#    import _thread as thread
     import urllib.request as urllib2
 else:
-    import thread
+#    import thread
     import urllib2
 
 controlHostPort = None
@@ -71,13 +72,17 @@ def waitForChatServer():
                 print("Warning: Chat Server Socket not connected.");
         
 def startListenForAppServer():
-   thread.start_new_thread(waitForAppServer, ())
+#   thread.start_new_thread(waitForAppServer, ())
+    watchdog.start("AppServerListen", waitForAppServer)
 
 def startListenForControlServer():
-   thread.start_new_thread(waitForControlServer, ())
+#   thread.start_new_thread(waitForControlServer, ())
+    watchdog.start("ControlServerListen", waitForControlServer)
 
 def startListenForChatServer():
-   thread.start_new_thread(waitForChatServer, ())
+#   thread.start_new_thread(waitForChatServer, ())
+    watchdog.start("ChatServerListen", waitForChatServer)
+
 
 def onHandleAppServerConnect(*args):
     identifyRobotID()    

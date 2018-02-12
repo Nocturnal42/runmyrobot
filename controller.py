@@ -11,6 +11,7 @@ import networking
 import time
 import schedule
 import sys
+import watchdog
 
 if (sys.version_info > (3, 0)):
     import importlib
@@ -309,5 +310,6 @@ if auto_wifi:
     auto_wifi_task()
 
 while True:
-    time.sleep(0.5)
+    time.sleep(1)
+    watchdog.watch()
                                 
