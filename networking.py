@@ -142,6 +142,12 @@ def onHandleControlDisconnect(*args):
     print("control socket.io disconnect")
     print
 
+#TODO: Fix this to setup a new control socket instead of terminatition the program.    
+#    newControlHostPort = getControlHostPort() #Reget control port will start if it closed for whatever reason
+#    if controlHostPort['port'] != newControlHostPort['port']: #See if the port is not the same as before
+#        print "restart: control host port changed"
+#        sys.exit(1) #Auto restart script will restart if the control port is not the same (which is unlikely)
+
 def setupSocketIO(robot_config):
     global controlHostPort
     global chatHostPort

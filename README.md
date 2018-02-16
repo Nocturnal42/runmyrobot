@@ -225,5 +225,41 @@ Install [Maestro Servon controller library]( https://github.com/FRC4564/Maestro)
 ## Pololu DRV8835 Motor Driver
 Install [DRV8835 Motor Driver library](https://github.com/pololu/drv8835-motor-driver-rpi)
 
+<<<<<<< HEAD
 ## Pololu MC33926 Motor Driver
 Install [MC33926 Motor Driver library](https://github.com/pololu/dual-mc33926-motor-driver-rpi)
+
+# High Level Overview
+
+![robot client topology](https://raw.githubusercontent.com/runmyrobot/runmyrobot/master/documentation/RobotClientTopology.png)
+
+The robot client connects via websockets to the API service to retrieve configuration information, to the chat to receive chat messages, the video/audio relays to send its camera and microphone capture, and to the control service to receive user commands.
+
+## Interfaces: 
+Control server via socket.io
+Application server via socket.io and HTTP
+Chat server via socket.io
+Sends video stream via websockets
+Sends audio stream via websockets
+
+## Responsibilities:
+Capturing Audio and Video
+Relays commands to robot hardware
+Text to Speech
+Supports remote login for diagnostics and updates
+Configuration updates from the web client (partially implemented)
+
+## Detailed Description:
+The robot client connects to four external services: API Service, Chat Service, Video/Audio Service, and the Control Service.
+
+#### API Service
+Provides information about which host and port to connect to for the chat service, video/audio service, and control service
+
+#### Chat Service
+Relays chat messages sent from the web clients to the robot
+
+#### Video/Audio Service
+The robot client streams ffmpeg output to the video/audio service
+
+#### Control Service
+Relays control messages sent from the web clients to the robot

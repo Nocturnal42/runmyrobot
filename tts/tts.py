@@ -34,7 +34,7 @@ def setup(robot_config):
             os.system("amixer set PCM -- -100")
 
         # tested for USB audio device
-        os.system("amixer -c 2 cset numid=3 %d%%" % robot_config.getint('tts', 'tts_volume'))
+        os.system("amixer -c %d cset numid=3 %d%%" % ( robot_config.getint('tts', 'hw_num'), robot_config.getint('tts', 'tts_volume')))
 
 
     #import the appropriate tts handler module.

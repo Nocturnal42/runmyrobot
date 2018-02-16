@@ -29,7 +29,7 @@ class DummyProcess:
 
 parser = argparse.ArgumentParser(description='robot control')
 parser.add_argument('camera_id')
-parser.add_argument('--info-server', help="handles things such as rest API requests about ports, for example 1.1.1.1:8082", default='runmyrobot.com')
+parser.add_argument('--info-server', help="handles things such as rest API requests about ports, for example 1.1.1.1:8082", default='letsrobot.tv')
 parser.add_argument('--info-server-protocol', default="https", help="either https or http")
 parser.add_argument('--app-server-socketio-host', default="letsrobot.tv", help="wherever app is running")
 parser.add_argument('--app-server-socketio-port', default=8022, help="typically use 8022 for prod, 8122 for dev, and 8125 for dev2")
@@ -55,11 +55,14 @@ parser.add_argument('--dry-run', dest='dry_run', action='store_true')
 parser.add_argument('--mic-channels', type=int, help='microphone channels, typically 1 or 2', default=1)
 parser.add_argument('--audio-input-device', default='Microphone (HD Webcam C270)') # currently, this option is only used for windows screen capture
 parser.add_argument('--stream-key', default='hello')
+parser.add_argument('--mic-gain', default=80, type=int) #control sensitivity of microphone
 
 commandArgs = parser.parse_args()
 robotSettings = None
 resolutionChanged = False
-server = 'runmyrobot.com'
+currentXres = None
+currentYres = None
+server = 'letsrobot.tv'
 infoServer = commandArgs.info_server
 apiServer = commandArgs.api_server
 
@@ -71,6 +74,8 @@ from socketIO_client import SocketIO, LoggingNamespace
 # enable raspicam driver in case a raspicam is being used
 os.system("sudo modprobe bcm2835-v4l2")
 
+# --mic-gain microphone sensitivity
+os.system("amixer -c %d cset numid=3 %d%%" % (commandArgs.audio_device_number, commandArgs.mic_gain))
 
 #if commandArgs.env == "dev":
 #    print "using dev port 8122"
@@ -171,7 +176,7 @@ def startVideoCaptureLinux():
         os.system("v4l2-ctl -c saturation={saturation}".format(saturation=robotSettings.saturation))
 
     
-    videoCommandLine = '/usr/local/bin/ffmpeg -f v4l2 -framerate 25 -video_size {xres}x{yres} -r 25 -i /dev/video{video_device_number} {rotation_option} -f mpegts -codec:v mpeg1video -s {xres}x{yres} -b:v {kbps}k -bf 0 -muxdelay 0.001 http://{video_host}:{video_port}/{stream_key}/{xres}/{yres}/'.format(video_device_number=robotSettings.video_device_number, rotation_option=rotationOption(), kbps=robotSettings.kbps, video_host=videoHost, video_port=videoPort, xres=robotSettings.xres, yres=robotSettings.yres, stream_key=robotSettings.stream_key)
+    videoCommandLine = '/usr/local/bin/ffmpeg -f v4l2 -framerate 25 -video_size {xres}x{yres} -r 25 -i /dev/video{video_device_number} {rotation_option} -f mpegts -codec:v mpeg1video -b:v {kbps}k -bf 0 -muxdelay 0.001 http://{video_host}:{video_port}/{stream_key}/{xres}/{yres}/'.format(video_device_number=robotSettings.video_device_number, rotation_option=rotationOption(), kbps=robotSettings.kbps, video_host=videoHost, video_port=videoPort, xres=robotSettings.xres, yres=robotSettings.yres, stream_key=robotSettings.stream_key)
 
     print (videoCommandLine)
     return subprocess.Popen(shlex.split(videoCommandLine))
@@ -248,19 +253,23 @@ def killallFFMPEGIn30Seconds():
 #todo, this needs to work differently. likely the configuration will be json and pull in stuff from command line rather than the other way around.
 def overrideSettings(commandArgs, onlineSettings):
     global resolutionChanged
+    global currentXres
+    global currentYres
     resolutionChanged = False
     c = copy.deepcopy(commandArgs)
     print ("onlineSettings:", onlineSettings)
     if 'mic_enabled' in onlineSettings:
         c.mic_enabled = onlineSettings['mic_enabled']
     if 'xres' in onlineSettings:
-        if c.xres != onlineSettings['xres']:
+        if currentXres != onlineSettings['xres']:
             resolutionChanged = True
         c.xres = onlineSettings['xres']
+        currentXres = onlineSettings['xres']
     if 'yres' in onlineSettings:
-        if c.yres != onlineSettings['yres']:
+        if currentYres != onlineSettings['yres']:
             resolutionChanged = True
         c.yres = onlineSettings['yres']
+        currentYres = onlineSettings['yres']
     print ("onlineSettings['mic_enabled']:", onlineSettings['mic_enabled'])
     return c
 

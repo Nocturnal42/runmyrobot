@@ -71,6 +71,7 @@ parser.add_argument('--left-wheel-forward-speed', type=int)
 parser.add_argument('--left-wheel-backward-speed', type=int)
 commandArgs = parser.parse_args()
 
+
 # push command line variables back into the config
 robot_config.set('robot', 'robot_id', str(commandArgs.robot_id))
 robot_config.set('robot', 'type', commandArgs.type)
@@ -189,7 +190,6 @@ def handle_command(args):
 
             move_handler(args)
 
-
 # TODO WALL and LOUD don't belong here, should be in custom handler.
             command = args['command']
             if command in ("SOUND2", "WALL", "LOUD"):
@@ -231,8 +231,7 @@ def auto_wifi_task():
     t = Timer(10, auto_wifi_task)
     t.daemon = True
     t.start()
-
-
+                    
 # TODO : This really doesn't belong here, should probably be in start script.
 # watch dog timer
 if robot_config.getboolean('misc', 'watchdog'):
