@@ -5,8 +5,6 @@ import sys
 import networking
 import schedule
 import extended_command
-import cozmo_go_to_charger as autodocking
-from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
 import PIL
 
 coz = None
@@ -16,31 +14,7 @@ infoServer = None
 annotated = False
 flipped = 0
 colour = False
-cozmoChatSocket = None
 
-def startListenForCozmoChatServer():
-    thread.start_net_thread(waitForCozmoChatServer, ())
-
-def waitForCozmoChatServer():
-    while True:
-        cozmoChatSocket.wait(seconds=1)
-
-def cozmoChatConnect():
-    global cozmoChatSocket
-    print("connecting cozmo to chat")
-    cozmoChatSocket = SocketIO('letsrobot.tv', 8000, LoggingNamespace)
-    startListenForCozmoChatServer()
-        
-def cozmoChat(send_message):
-    message = {}
-    message['chat_message'] = { 'message': send_message,
-                                'robot_name': 'CozmoTester',
-                                'robot_id': 67202604,
-                                'room': 'Nocturnal',
-                                'secret': "iknowyourelookingatthisthatsfine"
-                              }
-    cozmoChatSocket.emit(message)
- 
 def set_colour(command, args):
     global colour 
     if extended_command.is_authed(args['name']) == 2:
@@ -58,11 +32,6 @@ def set_flipped(command, args):
     if extended_command.is_authed(args['name']) == 2:
         flipped = not flipped
 
-def autodock(command, args):
-    if extended_command.is_authed(args['name']) == 2:
-        autodocking.drive_to_charger(coz, 5)
-
-
 def setup(robot_config):
     global camera_id
     global infoServer
@@ -77,13 +46,11 @@ def setup(robot_config):
     cozmo.robot.Robot.drive_off_charger_on_connect = False
     
     extended_command.add_command('.annotate', set_annotated)
-    extended_command.add_command('.autodock', autodock)
     extended_command.add_command('.color', set_colour)
     extended_command.add_command('.colour', set_colour)
 
     try:
-        thread.start_new_thread(cozmo.run_program, (run,))
-#        thread.start_new_thread(cozmo.run_program, (run,), {'use_3d_viewer':True})
+        thread.start_new_thread(cozmo.connect, (run,))
     except KeyboardInterrupt as e:
         pass        
     except cozmo.ConnectionError as e:
@@ -128,54 +95,12 @@ def getCozmo():
     return coz
 
 def run(coz_conn):
-    sdk_detect = 0
-    
-    def new_image(evt, **kwargs):
-        nonlocal sdk_detect
-        sdk_detect = 0        
-        if p:
-            image = coz.world.latest_image
-            if image:
-                if annotated:
-                    image = image.annotate_image()
-                else:
-                    image = image.raw_image
-                    
-                if flipped:
-                    image = image.transpose(PIL.Image.FLIP_LEFT_RIGHT)
-                image.save(p.stdin, 'PNG')
-            else:
-                time.sleep(.1)
-
-    def conn_closed(evt, **kwargs):
-        print("Connection Closed")
-        thread.interrupt_main()
-        thread.exit()
-              
-
     global coz
-#    coz = coz_conn.wait_for_robot()
-    coz = coz_conn
-
+    coz = coz_conn.wait_for_robot()
     coz.enable_stop_on_cliff(True)
 
     # Turn on image receiving by the camera
     coz.camera.image_stream_enabled = True
-
-    # Enable anotators
-    coz.world.image_annotator.enable_annotator('objects')
-    coz.world.define_custom_wall(CustomObjectTypes.CustomType01,
-                                              CustomObjectMarkers.Hexagons5,
-                                              120, 150,
-                                              64, 64, True)
-    coz.world.define_custom_cube(CustomObjectTypes.CustomType02,
-                                              CustomObjectMarkers.Diamonds3,
-                                              25,
-                                              25, 25, True)
-    coz.world.define_custom_cube(CustomObjectTypes.CustomType03,
-                                              CustomObjectMarkers.Circles2,
-                                              25,
-                                              25, 25, True)
 
     coz.say_text( "hey everyone, lets robot!", in_parallel=True)
 
@@ -198,41 +123,27 @@ def run(coz_conn):
                print("Error: cannot find c:\\ffmpeg\\bin\\ffmpeg.exe check ffmpeg is installed. Terminating controller")
                thread.interrupt_main()
                thread.exit()
-#            videoCommand = ['c:/ffmpeg/bin/ffmpeg.exe', '-nostats', '-loglevel', 'panic', '-y', '-f', 'image2pipe', '-rtbufsize', '200k', '-vcodec', 'png', '-r', '25', '-i', '-', '-f', 'dshow', '-video_size', '640x480', '-r', '25', '-rtbufsize', '10000k', '-i', 'video=Logitech QuickCam Pro 9000', '-filter_complex', '[1:v]setpts=PTS-STARTPTS[pip];[pip][0]overlay=main_w-overlay_w-10:10', '-vcodec', 'mpeg1video', '-b:v', '400k', '-f', 'mpegts', 'http://letsrobot.tv:'+str(video_port)+'/BlahBlah/640/480']
-#           p = Popen(videoCommand, stdin=PIPE)
-            p = Popen(['c:/ffmpeg/bin/ffmpeg.exe', '-nostats', '-y', '-f', 'image2pipe', '-vcodec', 'png', '-r', '25', '-i', '-', '-vcodec', 'mpeg1video', '-r', '25','-b:v', '400k', "-f","mpegts","http://letsrobot.tv:"+str(video_port)+"/BlahBlah/320/240/"], stdin=PIPE)
-        
-#        coz.world.add_event_handler(cozmo.world.EvtNewCameraImage, new_image)
-        coz.world.add_event_handler(cozmo.camera.EvtNewRawCameraImage, new_image)
 
-        time.sleep(10)
-        while True:
-            time.sleep(1)
-            if sdk_detect < 5:
-                sdk_detect = sdk_detect + 1
-#            else: # More than 2 seconds without a new image, sdk has disconnected.
-#                thread.interrupt_main()
-#                thread.exit()       
-#        try:
-#            while True:
-#                if coz:
-#                    image = coz.world.latest_image
-#                    if image:
-#                        if annotated:
-#                            image = image.annotate_image()
-#                        else:
-#                            image = image.raw_image
-#                        image.save(p.stdin, 'PNG')
-#                else:
-#                    time.sleep(.1)
-#            p.stdin.close()
-#            p.wait()
-#        except cozmo.exceptions.SDKShutdown:
-#            p.stdin.close()
-#            p.wait()
-#            thread.interrupt_main()
-#            thread.exit()
-#            pass               
+            p = Popen(['c:/ffmpeg/bin/ffmpeg.exe', '-nostats', '-y', '-f', 'image2pipe', '-vcodec', 'png', '-r', '25', '-i', '-', '-vcodec', 'mpeg1video', '-r', '25','-b:v', '400k', "-f","mpegts","http://letsrobot.tv:"+str(video_port)+"/hello/320/240/"], stdin=PIPE)
+        
+        try:
+            while True:
+                if coz:
+                    image = coz.world.latest_image
+                    if image:
+                        if annotated:
+                            image = image.annotate_image()
+                        else:
+                            image = image.raw_image
+                        image.save(p.stdin, 'PNG')
+                else:
+                    time.sleep(.1)
+            p.stdin.close()
+            p.wait()
+        except cozmo.exceptions.SDKShutdown:
+            p.stdin.close()
+            p.wait()
+            pass               
 
 def say(*args):
     global coz
