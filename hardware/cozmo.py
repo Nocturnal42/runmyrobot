@@ -20,7 +20,7 @@ low_battery = 0
 stay_on_dock = 0
 
 default_anims_for_keys = ["anim_bored_01",  # 0 drat
-                          "id_poked_giggle",  # 1 giggle
+                          "anim_poked_giggle",  # 1 giggle
                           "anim_pounce_success_02",  # 2 wow
                           "anim_bored_event_02",  # 3 tick tock
                           "anim_bored_event_03",  # 4 pong face
