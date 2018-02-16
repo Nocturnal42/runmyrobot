@@ -14,14 +14,14 @@ The RasPi will need the following things install so it can talk to your motor an
 1. Install python serial, gnutls, python-dev, espeak, and python-smbus:
 
    ```
-   apt-get install python-serial python-dev libgnutls28-dev espeak python-smbus python-pip git
+   sudo apt-get install python-serial python-dev libgnutls28-dev espeak python-smbus python-pip git
    ```
 
 
 2. Install configparser and socket.io client for python:
 
    ```
-   pip install socketIO-client configparser
+   sudo pip install socketIO-client configparser
    ```
 
 
