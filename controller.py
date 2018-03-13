@@ -38,6 +38,10 @@ except:
     print ("Error in letsrobot.conf:", sys.exc_info()[0])
     sys.exit()
 
+
+handlingCommand = False    
+chat_module = None
+
 # This is required to allow us to get True / False boolean values from the
 # command line    
 def str2bool(v):
@@ -92,6 +96,9 @@ no_chat_server = robot_config.getboolean('misc', 'no_chat_server')
 enable_async = robot_config.getboolean('misc', 'enable_async')
 auto_wifi = robot_config.getboolean('misc', 'auto_wifi')
 secret_key = robot_config.get('misc', 'secret_key')
+
+if ext_chat:
+    import extended_command
 
 if debug_messages:
     print(commandArgs)
@@ -176,9 +183,6 @@ def handleLoudCommand(seconds):
     os.system("amixer -c 2 cset numid=3 %d%%" % 100)
     schedule.single_task(seconds, changeVolumeNormal)
     
-
-
-handlingCommand = False    
 def handle_command(args):
         global handlingCommand
         handlingCommand = True
@@ -245,6 +249,24 @@ if debug_messages:
 # Load and start TTS
 import tts.tts as tts
 tts.setup(robot_config)
+
+# Connect to the networking sockets
+networking.setupSocketIO(robot_config)
+controlSocketIO = networking.setupControlSocket(on_handle_command)
+chatSocket = networking.setupChatSocket(on_handle_chat_message)
+appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
+
+# If messenger is enabled, connect a chat socket for return messages
+if robot_config.getboolean('messenger', 'enable'):
+    messengerSocket = networking.setupMessengerSocket()
+    messengerSocket.emit('chat_message', { 'message': '[Hello Bot] Hello world!', 'robot_id': '60582868', 'robot_name': 'Hello Bot', "secret": "iknowyourelookingatthisthatsfine"})
+
+
+# If reverse SSH is enabled and if the key file exists, import it and hook it in.
+if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
+    import reverse_ssh
+    setupReverseSsh(robot_config)
+
 global drivingSpeed
 
 # If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
@@ -272,7 +294,6 @@ module.setup(robot_config)
 move_handler = module.move
 
 # Load a custom chat handler if enabled and exists
-chat_module = None
 if commandArgs.custom_chat:
     if os.path.exists('chat_custom.py'):
         if (sys.version_info > (3, 0)):
@@ -287,22 +308,9 @@ if commandArgs.custom_chat:
 
 #load the extended chat commands
 if ext_chat:
-    import extended_command
     extended_command.setup(robot_config)
     extended_command.move_handler=move_handler
     move_handler = extended_command.move_auth
-
-
-# Connect to the networking sockets
-networking.setupSocketIO(robot_config)
-controlSocketIO = networking.setupControlSocket(on_handle_command)
-chatSocket = networking.setupChatSocket(on_handle_chat_message)
-appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
-
-# If reverse SSH is enabled and if the key file exists, import it and hook it in.
-if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
-    import reverse_ssh
-    setupReverseSsh(robot_config)
     
 # add auto wifi task
 if auto_wifi:

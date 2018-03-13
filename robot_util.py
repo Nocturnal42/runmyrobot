@@ -1,4 +1,5 @@
 from __future__ import print_function
+import requests
 import time
 import traceback
 import ssl
@@ -11,6 +12,8 @@ if (sys.version_info > (3, 0)):
 else:
     import urllib2
     from urllib2 import HTTPError
+
+# TODO : Think about rewriting this, and using request.
 
 def getWithRetry(url, secure=True):
 
@@ -30,9 +33,14 @@ def getWithRetry(url, secure=True):
             traceback.print_exc()
             time.sleep(2)
 
-    return response
+    return response.decode('utf-8')
 
 server_panels = '[{"button_panels":[{"button_panel_label": "movement controls","buttons": [{"label": "Left", "command": "L"}, {"label": "Right", "command": "R"}, {"label": "Forward", "command": "F"}, {"label": "Backward","command": "B"}]}]}]'
+
+def getAuthToken(url, payload):  
+    headers = {'content-type': 'application/json'}
+    response = requests.request("POST", url, data=json.dumps(payload), headers=headers)
+    return response
 
 # This function passes data to the server api to update the robot settings.
 def sendRobotSettings(data, robot_id, api_key):
