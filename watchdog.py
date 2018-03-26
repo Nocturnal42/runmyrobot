@@ -1,3 +1,7 @@
+#TODO: Count restarts during a time period, and terminate if too high.
+#      Add a vital flag to a process, if restart fails, program will terminate. 
+#      
+
 from threading import Thread
 
 watches={}

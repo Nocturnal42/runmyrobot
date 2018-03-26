@@ -1,5 +1,4 @@
-# TODO rewrite to take function arguments
-
+# TODO: Low priority, kwargs support
 from threading import Timer
 def task(wait, task_handler, *args):
     new_args = [wait, task_handler]
