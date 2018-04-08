@@ -45,18 +45,18 @@ debug_messages = None
 
 def getControlHostPort():
     url = 'https://%s/get_control_host_port/%s' % (infoServer, robot_id)
-    response = robot_util.getWithRetry(url, secure=secure_cert).decode('utf-8')
+    response = robot_util.getWithRetry(url, secure=secure_cert)
     return json.loads(response)
 
 def getChatHostPort():
     url = 'https://%s/get_chat_host_port/%s' % (infoServer, robot_id)
-    response = robot_util.getWithRetry(url, secure=secure_cert).decode('utf-8')
+    response = robot_util.getWithRetry(url, secure=secure_cert)
     return json.loads(response)
     
 def getOwnerDetails(username):
     url = 'https://%s/api/v1/accounts/%s' % (apiServer, username)
 #    url = 'https://api.letsrobot.tv/api/v1/robocasters/%s' % (username)
-    response = robot_util.getWithRetry(url, secure=secure_cert).decode('utf-8')
+    response = robot_util.getWithRetry(url, secure=secure_cert)
     return json.loads(response)
     
 def getVideoPort():
@@ -218,15 +218,21 @@ def onHandleMessengerDisconnect(*args):
 #        sys.exit(1) #Auto restart script will restart if the control port is not the same (which is unlikely)
 
 def setupSocketIO(robot_config):
+    global infoServer
+    global apiServer
+
     global controlHostPort
     global chatHostPort
-    global infoServer
+    global videoPort
+    global audioPort
+
     global robot_id
     global camera_id
+
     global no_chat_server
     global secure_cert
     global debug_messages
-    global apiServer
+
     global messengerHost
     global messengerPort
     global messengerName
@@ -348,6 +354,14 @@ def sendChargeState(charging):
             print("Error: Can't update server on charge state, no app socket")
     print("charge state:", chargeState)
 
+def sendOnlineState(state):
+    onlineState = {'send_video_process_exists': state, 'camera_id': camera_id}
+    try:
+        appServerSocketIO.emit('send_video_status', onlineState)
+    except AttributeError:
+        if debug_messages:
+            print("Error: Can't update server on charge state, no app socket")
+    print("online state: %s" % onlineState)
 
 def ipInfoUpdate():
     appServerSocketIO.emit('ip_information',
@@ -362,7 +376,7 @@ def identifyRobotID():
     if not appServerSocketIO == None:
         appServerSocketIO.emit('identify_robot_id', robot_id);
    
-#schedule a task to tell the server our robot it.
+#schedule a task to tell the server our robot id.
 def identifyRobot_task():
     # tell the server what robot id is using this connection
     identifyRobotID()
