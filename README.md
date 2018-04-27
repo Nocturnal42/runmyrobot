@@ -192,6 +192,7 @@ When ext_chat is enabled, the following chat commands are available. To use, jus
 * `.brightness X` set the camera brightness [0..255]
 * `.contrast X` set the camera contrast [0..255]
 * `.saturation X` set the camera saturation [0..255]
+* `.stationary` Toggles stationary mode on and off. When enabled, forward / backward commands will be blocked.
 
 Hardware modules can have their own hardware specific TTS commands.
 

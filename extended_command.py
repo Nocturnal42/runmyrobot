@@ -58,6 +58,7 @@ owner = None
 v4l2_ctl = None
 robot_id = None
 api_key = None
+stationary = None
 banned=[]
 mods=[]
 
@@ -237,7 +238,13 @@ def tts_handler(command, args):
                 # TTS int volume command
                 return
 
-def global_chat_hander(command, args):
+def stationary_handler(command, args):
+    global stationary
+    if is_authed(args['name']) == 2: # Owner
+        stationary = not stationary
+        print ("stationary is ", stationary)
+
+def global_chat_handler(command, args):
     if len(command) > 1:
         if api_key != None:
             if is_authed(args['name']) == 2: # Owner
@@ -248,7 +255,7 @@ def global_chat_hander(command, args):
                     robot_util.setGlobalChat(True, robot_id, api_key)
                     return
 
-def word_filter_hander(command, args):
+def word_filter_handler(command, args):
     if len(command) > 1:
         if api_key != None:
             if is_authed(args['name']) == 2: # Owner
@@ -259,7 +266,7 @@ def word_filter_hander(command, args):
                     robot_util.setWordFilter(False, robot_id, api_key)
                     return
 
-def show_exclusive_hander(command, args):
+def show_exclusive_handler(command, args):
     if len(command) > 1:
         if api_key != None:
             if is_authed(args['name']) == 2: # Owner
@@ -288,8 +295,6 @@ def saturation(command, args):
             os.system(v4l2_ctl + " --set-ctrl saturation=" + command[1])
             print("saturation set to " + command[1])
 	
-
-
 # This is a dictionary of commands and their handler functions
 commands={    '.anon'       :    anon_handler,
 	            '.ban'        :    ban_handler,
@@ -299,13 +304,14 @@ commands={    '.anon'       :    anon_handler,
               '.devmode'    :    devmode_handler,
 	            '.mic'        :    mic_handler,
 	            '.tts'        :    tts_handler,
-	          '.global_chat':    global_chat_hander,
+	          '.global_chat':    global_chat_handler,
               '.public'    :    public_mode_handler,
-              '.show_exclusive':     show_exclusive_hander,
-              '.word_filter':    word_filter_hander,
+              '.show_exclusive':     show_exclusive_handler,
+              '.word_filter':    word_filter_handler,
               '.brightness' :    brightness,
               '.contrast'   :    contrast,    
-              '.saturation' :    saturation
+              '.saturation' :    saturation,
+              '.stationary' :    stationary_handler
 	        }
 
 def handler(args):
@@ -325,18 +331,24 @@ def move_auth(args):
     user = args['user']
     anon = args['anonymous']
     
+    if stationary:
+        direction = args['command']
+        if direction == 'F' or direction == 'B':
+            print("No forward for you.....")
+            return 
+               
     if anon_control == False and anon:
-        exit()
+        return
     elif dev_mode_mods:
         if is_authed(user):
             move_handler(args)
         else:
-            exit()
+            return
     elif dev_mode:
         if is_authed(user) == 2: # owner
             move_handler(args)
         else:
-            exit()
+            return
     elif user not in banned: # Check for banned and timed out users
         move_handler(args)
  
