@@ -122,17 +122,17 @@ def getAudioPort():
 def getRobotID():
 
     url = '%s://%s/get_robot_id/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
-    response = robot_util.getWithRetry(url).decode('utf-8')
+    response = robot_util.getWithRetry(url)
     return json.loads(response)['robot_id']
 
 def getWebsocketRelayHost():
     url = '%s://%s/get_websocket_relay_host/%s' % (infoServerProtocol, infoServer, commandArgs.camera_id)
-    response = robot_util.getWithRetry(url).decode('utf-8')
+    response = robot_util.getWithRetry(url)
     return json.loads(response)
 
 def getOnlineRobotSettings(robotID):
     url = 'https://%s/api/v1/robots/%s' % (apiServer, robotID)
-    response = robot_util.getWithRetry(url).decode('utf-8')
+    response = robot_util.getWithRetry(url)
     return json.loads(response)
         
 def identifyRobotId():
