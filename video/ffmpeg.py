@@ -38,6 +38,7 @@ video_codec = None
 video_bitrate = None
 video_filter = ''
 video_device = None
+audio_input_format = None
 audio_input_options = None
 audio_output_options = None
 video_input_options = None
@@ -79,6 +80,7 @@ def setup(robot_config):
     global video_device
     global audio_input_options
     global audio_output_options
+    global video_input_format
     global video_input_options
     global video_output_options
 
@@ -119,6 +121,7 @@ def setup(robot_config):
         video_device = robot_config.get('camera', 'camera_device')
         video_codec = robot_config.get('ffmpeg', 'video_codec')
         video_bitrate = robot_config.get('ffmpeg', 'video_bitrate')        
+        video_input_format = robot_config.get('ffmpeg', 'video_input_format')
         video_input_options = robot_config.get('ffmpeg', 'video_input_options')
         video_output_options = robot_config.get('ffmpeg', 'video_output_options')
 
@@ -208,13 +211,14 @@ def startVideoCapture():
         os.system("v4l2-ctl -c saturation={saturation}".format(saturation=robotSettings.saturation))
 
     
-    videoCommandLine = ('{ffmpeg} -f v4l2 -framerate 25 -video_size {xres}x{yres}'
+    videoCommandLine = ('{ffmpeg} -f {input_format} -framerate 25 -video_size {xres}x{yres}'
                         ' -r 25 {in_options} -i {video_device} {video_filter}'
                         ' -f mpegts -codec:v {video_codec} -b:v {video_bitrate}k -bf 0'
                         ' -muxdelay 0.001 {out_options}'
                         ' http://{video_host}:{video_port}/{stream_key}/{xres}/{yres}/')
                         
     videoCommandLine = videoCommandLine.format(ffmpeg=ffmpeg_location,
+                            input_format=video_input_format,
                             in_options=video_input_options,
                             video_device=video_device, 
                             video_filter=video_filter,
