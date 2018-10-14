@@ -269,13 +269,6 @@ appServerSocketIO = networking.setupAppSocket(on_handle_exclusive_control)
 if robot_config.getboolean('messenger', 'enable'):
     messengerSocket = networking.setupMessengerSocket()
 
-# If reverse SSH is enabled and if the key file exists, import it and hook it in.
-if robot_config.getboolean('misc', 'reverse_ssh') and os.path.isfile(robot_config.get('misc', 'reverse-ssh-key-file')):
-    import reverse_ssh
-    setupReverseSsh(robot_config)
-
-global drivingSpeed
-
 # If custom hardware extensions have been enabled, load them if they exist. Otherwise load the default
 # controller for the specified hardware type.
 if commandArgs.custom_hardware:
