@@ -40,6 +40,7 @@ video_bitrate = None
 video_filter = ''
 video_device = None
 audio_input_format = None
+audio_input_device = None
 audio_input_options = None
 audio_output_options = None
 video_input_options = None
@@ -80,6 +81,8 @@ def setup(robot_config):
     global video_bitrate
     global video_filter
     global video_device
+    global audio_input_format
+    global audio_input_device
     global audio_input_options
     global audio_output_options
     global video_input_format
@@ -150,12 +153,18 @@ def setup(robot_config):
         audio_codec = robot_config.get('ffmpeg', 'audio_codec')
         audio_bitrate = robot_config.get('ffmpeg', 'audio_bitrate')        
         audio_sample_rate = robot_config.get('ffmpeg', 'audio_sample_rate')
-        audio_channels = robot_config.get('ffmpeg', 'audio_channels')        
-        audio_input_options = robot_config.get('ffmpeg', 'video_input_options')
-        audio_output_options = robot_config.get('ffmpeg', 'video_output_options')
+        audio_channels = robot_config.get('ffmpeg', 'audio_channels')
+        audio_input_format = robot_config.get('ffmpeg', 'audio_input_format')
+        audio_input_device = robot_config.get('ffmpeg', 'audio_input_device')
+        audio_input_options = robot_config.get('ffmpeg', 'audio_input_options')
+        audio_output_options = robot_config.get('ffmpeg', 'audio_output_options')
 
         if robot_config.getboolean('tts', 'ext_chat'):
             extended_command.add_command('.audio', audioChatHandler)
+
+        # format the device for hw number if using alsa
+        if audio_input_format == 'alsa':
+            audio_input_device = 'hw:' + audio_hw_num
 
 def start():
     if not no_camera:
@@ -261,17 +270,18 @@ def restartVideoCapture():
 
 def startAudioCapture():
     global audio_process
-    audioCommandLine = ('{ffmpeg} -f alsa -ar {audio_sample_rate}  -ac {audio_channels}'
-                       ' {in_options} -i hw:{audio_hw_num} -f mpegts'
+    audioCommandLine = ('{ffmpeg} -f {audio_input_format} -ar {audio_sample_rate} -ac {audio_channels}'
+                       ' {in_options} -i {audio_input_device} -f mpegts'
                        ' -codec:a {audio_codec}  -b:a {audio_bitrate}k'
                        ' -muxdelay 0.001 {out_options}'
                        ' http://{audio_host}:{audio_port}/{stream_key}/640/480/')
 
     audioCommandLine = audioCommandLine.format(ffmpeg=ffmpeg_location,
+                            audio_input_format=audio_input_format,
                             audio_sample_rate=audio_sample_rate,
                             audio_channels=audio_channels,
                             in_options=audio_input_options,
-                            audio_hw_num=audio_hw_num,
+                            audio_input_device=audio_input_device,
                             audio_codec=audio_codec,
                             audio_bitrate=audio_bitrate,
                             out_options=audio_output_options,

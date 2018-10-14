@@ -17,7 +17,6 @@ def setup(robot_config):
     ffmpeg.startAudioCapture=startAudioCapture
 
 def setupArecord(robot_config):
-    print("ffmpeg-arecord-setup")
     global arecord_path
     global arecord_format
  
