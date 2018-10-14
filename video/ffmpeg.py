@@ -34,6 +34,7 @@ audio_hw_num = None
 audio_codec = None
 audio_channels = None
 audio_bitrate = None
+audio_sample_rate = None
 video_codec = None
 video_bitrate = None
 video_filter = ''
@@ -74,6 +75,7 @@ def setup(robot_config):
     global audio_codec
     global audio_channels
     global audio_bitrate
+    global audio_sample_rate
     global video_codec
     global video_bitrate
     global video_filter
@@ -147,6 +149,7 @@ def setup(robot_config):
 
         audio_codec = robot_config.get('ffmpeg', 'audio_codec')
         audio_bitrate = robot_config.get('ffmpeg', 'audio_bitrate')        
+        audio_sample_rate = robot_config.get('ffmpeg', 'audio_sample_rate')
         audio_channels = robot_config.get('ffmpeg', 'audio_channels')        
         audio_input_options = robot_config.get('ffmpeg', 'video_input_options')
         audio_output_options = robot_config.get('ffmpeg', 'video_output_options')
@@ -258,13 +261,14 @@ def restartVideoCapture():
 
 def startAudioCapture():
     global audio_process
-    audioCommandLine = ('{ffmpeg} -f alsa -ar 44100 -ac {audio_channels}'
+    audioCommandLine = ('{ffmpeg} -f alsa -ar {audio_sample_rate}  -ac {audio_channels}'
                        ' {in_options} -i hw:{audio_hw_num} -f mpegts'
                        ' -codec:a {audio_codec}  -b:a {audio_bitrate}k'
                        ' -muxdelay 0.001 {out_options}'
                        ' http://{audio_host}:{audio_port}/{stream_key}/640/480/')
 
     audioCommandLine = audioCommandLine.format(ffmpeg=ffmpeg_location,
+                            audio_sample_rate=audio_sample_rate,
                             audio_channels=audio_channels,
                             in_options=audio_input_options,
                             audio_hw_num=audio_hw_num,
